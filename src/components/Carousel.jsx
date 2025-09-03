@@ -19,18 +19,27 @@ const Carousel = () => {
         id="default-carousel"
         className="relative w-full"
         data-carousel="slide"
-        data-carousel-interval="5000"
+        data-carousel-interval="8000"
       >
         {/* Carousel wrapper */}
         <div className="relative h-[500px] overflow-hidden rounded-lg md:h-[900px]">
           {/* Item 1 */}
+         
           <div className="duration-700 ease-in-out" data-carousel-item="active">
+            
             <img
               src={banner}
               className="block w-full h-full object-cover"
               alt="Slide 1"
             />
+            <div class="absolute inset-0  w-full h-full" style={{backgroundColor:'#00000050'}}></div>
+            <div class="absolute inset-0 flex  items-center justify-center text-white">
+    <h2 class="text-2xl font-bold">Title</h2> </div>
+                <div class="absolute inset-0 flex  items-center justify-center text-white">
+    <p class="text-2xl font-bold" style={{marginTop:'100px'}}>Subtitle</p> </div>
+
           </div>
+          
           {/* Item 2 */}
           <div className="hidden duration-700 ease-in-out" data-carousel-item>
             <img
@@ -38,6 +47,11 @@ const Carousel = () => {
               className="block w-full h-full object-cover"
               alt="Slide 2"
             />
+            <div class="absolute inset-0  w-full h-full" style={{backgroundColor:'#00000050'}}></div>
+            <div class="absolute inset-0 flex  items-center justify-center text-white">
+    <h2 class="text-2xl font-bold">Title</h2> </div>
+                <div class="absolute inset-0 flex  items-center justify-center text-white">
+    <p class="text-2xl font-bold" style={{marginTop:'100px'}}>Subtitle</p> </div>
           </div>
           {/* Item 3 */}
           <div className="hidden duration-700 ease-in-out" data-carousel-item>
@@ -46,6 +60,11 @@ const Carousel = () => {
               className="block w-full h-full object-cover"
               alt="Slide 3"
             />
+            <div class="absolute inset-0  w-full h-full" style={{backgroundColor:'#00000050'}}></div>
+            <div class="absolute inset-0 flex  items-center justify-center text-white">
+    <h2 class="text-2xl font-bold">Title</h2> </div>
+    <div class="absolute inset-0 flex  items-center justify-center text-white">
+    <p class="text-2xl font-bold" style={{marginTop:'100px'}}>Subtitle</p> </div>
           </div>
           {/* Item 4 */}
           <div className="hidden duration-700 ease-in-out" data-carousel-item>
@@ -54,7 +73,13 @@ const Carousel = () => {
               className="block w-full h-full object-cover"
               alt="Slide 4"
             />
+            <div class="absolute inset-0  w-full h-full" style={{backgroundColor:'#00000050'}}></div>
+            <div class="absolute inset-0 flex  items-center justify-center text-white">
+    <h2 class="text-2xl font-bold">Title</h2> </div>
+      <div class="absolute inset-0 flex  items-center justify-center text-white">
+    <p class="text-2xl font-bold" style={{marginTop:'100px'}}>Subtitle</p> </div>
           </div>
+
           {/* Item 5 */}
           <div className="hidden duration-700 ease-in-out" data-carousel-item>
             <img
@@ -62,6 +87,12 @@ const Carousel = () => {
               className="block w-full h-full object-cover"
               alt="Slide 5"
             />
+            <div class="absolute inset-0  w-full h-full" style={{backgroundColor:'#00000050'}}></div>
+            <div class="absolute inset-0 flex  items-center justify-center text-white">
+    <h2 class="text-2xl font-bold">Title</h2> </div>
+
+                <div class="absolute inset-0 flex  items-center justify-center text-white">
+    <p class="text-2xl font-bold" style={{marginTop:'100px'}}>Subtitle</p> </div>
           </div>
           {/* Item 6 */}
           <div className="hidden duration-700 ease-in-out" data-carousel-item>
@@ -70,6 +101,11 @@ const Carousel = () => {
               className="block w-full h-full object-cover"
               alt="Slide 6"
             />
+            <div class="absolute inset-0  w-full h-full" style={{backgroundColor:'#00000050'}}></div>
+            <div class="absolute inset-0 flex  items-center justify-center text-white">
+    <h2 class="text-2xl font-bold">Title</h2> </div>
+    <div class="absolute inset-0 flex  items-center justify-center text-white" style={{marginTop:'100px'}}>
+    <p class="text-2xl font-bold">Subtitle</p> </div>
           </div>
         </div>
 
