@@ -80,6 +80,7 @@ const Carousel = () => {
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
         <div className="absolute z-30 flex -translate-x-1/2 bottom-5 left-1/2 space-x-3 rtl:space-x-reverse">
 =======
         <div className="absolute  flex -translate-x-1/2 bottom-5 left-1/2 space-x-3 rtl:space-x-reverse">
@@ -89,6 +90,9 @@ const Carousel = () => {
 >>>>>>> Stashed changes
 =======
         <div className="absolute z-30 flex -translate-x-1/2 bottom-5 left-1/2 space-x-3 rtl:space-x-reverse">
+>>>>>>> Stashed changes
+=======
+        <div className="absolute  flex -translate-x-1/2 bottom-5 left-1/2 space-x-3 rtl:space-x-reverse">
 >>>>>>> Stashed changes
 =======
         <div className="absolute  flex -translate-x-1/2 bottom-5 left-1/2 space-x-3 rtl:space-x-reverse">
@@ -111,6 +115,7 @@ const Carousel = () => {
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
           className="absolute top-0 start-0 z-30 flex items-center justify-center h-full px-4 cursor-pointer group focus:outline-none"
 =======
           className="absolute top-0 start-0  flex items-center justify-center h-full px-4 cursor-pointer group focus:outline-none"
@@ -120,6 +125,9 @@ const Carousel = () => {
 >>>>>>> Stashed changes
 =======
           className="absolute top-0 start-0 z-30 flex items-center justify-center h-full px-4 cursor-pointer group focus:outline-none"
+>>>>>>> Stashed changes
+=======
+          className="absolute top-0 start-0  flex items-center justify-center h-full px-4 cursor-pointer group focus:outline-none"
 >>>>>>> Stashed changes
 =======
           className="absolute top-0 start-0  flex items-center justify-center h-full px-4 cursor-pointer group focus:outline-none"
@@ -151,6 +159,7 @@ const Carousel = () => {
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
           className="absolute top-0 end-0 z-30 flex items-center justify-center h-full px-4 cursor-pointer group focus:outline-none"
 =======
           className="absolute top-0 end-0  flex items-center justify-center h-full px-4 cursor-pointer group focus:outline-none"
@@ -160,6 +169,9 @@ const Carousel = () => {
 >>>>>>> Stashed changes
 =======
           className="absolute top-0 end-0 z-30 flex items-center justify-center h-full px-4 cursor-pointer group focus:outline-none"
+>>>>>>> Stashed changes
+=======
+          className="absolute top-0 end-0  flex items-center justify-center h-full px-4 cursor-pointer group focus:outline-none"
 >>>>>>> Stashed changes
 =======
           className="absolute top-0 end-0  flex items-center justify-center h-full px-4 cursor-pointer group focus:outline-none"
