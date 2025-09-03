@@ -1,9 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import API from "../services/api";
-import image1 from "../assets/image1.jpg";
-import image2 from "../assets/Aoi-portal .png";
-import { boxShadow } from "flowbite-react/plugin/tailwindcss/theme";
 
 export default function Login() {
   const [form, setForm] = useState({ identifier: "", password: "" });
@@ -39,14 +36,10 @@ export default function Login() {
   };
 
   return (
-    <main className="m-auto">
-     
-    <section  class="w-1/2 m-auto grid grid-col-2 ">
-      
-    <div className="flex items-center justify-center min-h-screen place-content-center ">
+    <div className="flex items-center justify-center min-h-screen bg-gray-100">
       <form
         onSubmit={handleSubmit}
-        className="bg-white p-8 rounded-xl shadow-md w-96 h-96 place-content-center"
+        className="bg-white p-8 rounded-xl shadow-md w-96"
       >
         <h2 className="text-2xl font-bold mb-6 text-center">Login</h2>
         <input
@@ -73,32 +66,5 @@ export default function Login() {
         </button>
       </form>
     </div>
-
-   <div className="flex justify-center items-center min-h-screen ">
-   <img
-      src={image2}
-      alt="Overlay"
-      className=" w-60 h-full object-contain z-10 opacity-80 "
-    />
-    <div style={{backgroundColor:"#00000067"}} className=" w-full h-full bg--500 z-10" />
-    {/* Overlay Image */}
-   
-  
-    {/* Background Image */}
-    <img
-      src={image1}
-      alt="Background"
-      className=" w-full h-full object-cover z-0"
-    />
-</div>
-  
-</section>
-
-
-
-    </main>
-  
-    
-    
   );
 }
