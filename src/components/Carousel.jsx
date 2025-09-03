@@ -24,12 +24,14 @@ const Carousel = () => {
         {/* Carousel wrapper */}
         <div className="relative h-[500px] overflow-hidden rounded-lg md:h-[900px]">
           {/* Item 1 */}
+          <div className="w-full h-full">
           <div className="duration-700 ease-in-out" data-carousel-item="active">
             <img
               src={banner}
               className="block w-full h-full object-cover"
               alt="Slide 1"
             />
+          </div>
           </div>
           {/* Item 2 */}
           <div className="hidden duration-700 ease-in-out" data-carousel-item>
@@ -77,6 +79,7 @@ const Carousel = () => {
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
         <div className="absolute z-30 flex -translate-x-1/2 bottom-5 left-1/2 space-x-3 rtl:space-x-reverse">
 =======
         <div className="absolute  flex -translate-x-1/2 bottom-5 left-1/2 space-x-3 rtl:space-x-reverse">
@@ -86,6 +89,9 @@ const Carousel = () => {
 >>>>>>> Stashed changes
 =======
         <div className="absolute z-30 flex -translate-x-1/2 bottom-5 left-1/2 space-x-3 rtl:space-x-reverse">
+>>>>>>> Stashed changes
+=======
+        <div className="absolute  flex -translate-x-1/2 bottom-5 left-1/2 space-x-3 rtl:space-x-reverse">
 >>>>>>> Stashed changes
           {[...Array(6)].map((_, i) => (
             <button
@@ -104,6 +110,7 @@ const Carousel = () => {
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
           className="absolute top-0 start-0 z-30 flex items-center justify-center h-full px-4 cursor-pointer group focus:outline-none"
 =======
           className="absolute top-0 start-0  flex items-center justify-center h-full px-4 cursor-pointer group focus:outline-none"
@@ -113,6 +120,9 @@ const Carousel = () => {
 >>>>>>> Stashed changes
 =======
           className="absolute top-0 start-0 z-30 flex items-center justify-center h-full px-4 cursor-pointer group focus:outline-none"
+>>>>>>> Stashed changes
+=======
+          className="absolute top-0 start-0  flex items-center justify-center h-full px-4 cursor-pointer group focus:outline-none"
 >>>>>>> Stashed changes
           data-carousel-prev
         >
@@ -140,6 +150,7 @@ const Carousel = () => {
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
           className="absolute top-0 end-0 z-30 flex items-center justify-center h-full px-4 cursor-pointer group focus:outline-none"
 =======
           className="absolute top-0 end-0  flex items-center justify-center h-full px-4 cursor-pointer group focus:outline-none"
@@ -149,6 +160,9 @@ const Carousel = () => {
 >>>>>>> Stashed changes
 =======
           className="absolute top-0 end-0 z-30 flex items-center justify-center h-full px-4 cursor-pointer group focus:outline-none"
+>>>>>>> Stashed changes
+=======
+          className="absolute top-0 end-0  flex items-center justify-center h-full px-4 cursor-pointer group focus:outline-none"
 >>>>>>> Stashed changes
           data-carousel-next
         >
