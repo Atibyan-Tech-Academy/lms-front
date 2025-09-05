@@ -1,25 +1,45 @@
 import React from "react";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Home from "./pages/Home";
+import { Routes, Route } from "react-router-dom";
+
 import Login from "./pages/Login";
-import Login2 from "./pages/Login2";
 import StudentDashboard from "./pages/StudentDashboard";
 import InstructorDashboard from "./pages/InstructorDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
+import PrivateRoute from "./components/PrivateRoute";
 
-function App() {
+export default function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/login2" element={<Login2 />} />
-        <Route path="/student" element={<StudentDashboard />} />
-        <Route path="/instructor" element={<InstructorDashboard />} />
-        <Route path="/admin" element={<AdminDashboard />} />
-      </Routes>
-    </BrowserRouter>
+    <Routes>
+      {/* Public */}
+      <Route path="/login" element={<Login />} />
+
+      {/* Protected */}
+      <Route
+        path="/student"
+        element={
+          <PrivateRoute roleCheck={["STUDENT"]}>
+            <StudentDashboard />
+          </PrivateRoute>
+        }
+      />
+
+      <Route
+        path="/instructor"
+        element={
+          <PrivateRoute roleCheck={["LECTURER"]}>
+            <InstructorDashboard />
+          </PrivateRoute>
+        }
+      />
+
+      <Route
+        path="/admin"
+        element={
+          <PrivateRoute roleCheck={["ADMIN"]}>
+            <AdminDashboard />
+          </PrivateRoute>
+        }
+      />
+    </Routes>
   );
 }
-
-export default App;
