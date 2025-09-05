@@ -1,6 +1,5 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss/theme";
+@import "tailwindcss/utilities";
+@import "tailwindcss/preflight";
 
-/* If you're using Flowbite */
-@import 'flowbite';
+

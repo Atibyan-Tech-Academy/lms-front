@@ -1,4 +1,5 @@
 
+import React from "react";
 import { Link } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Carousel from "../components/Carousel";
@@ -13,7 +14,7 @@ import Carousel from "../components/Carousel";
         <Carousel/>
     
         <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
-          <h1 className="text-4xl font-bold mb-6">Welcome to AOI Academy LMS</h1>
+          <h1 className="text-2xl text-red-500 font-bold mb-6">Welcome to AOI Academy LMS</h1>
           <div className="space-x-4">
             <Link
               to="/login"
