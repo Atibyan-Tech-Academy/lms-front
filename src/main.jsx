@@ -1,13 +1,15 @@
-import React from "react"; // 👈 add this back
-
+import React from "react";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
+import { BrowserRouter } from "react-router-dom";
 import "./index.css";
 import App from "./App.jsx";
-import "flowbite"; // or "daisyui" depending on which you use
+import "flowbite"; // or daisyui
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
-    <App />
+    <BrowserRouter>
+      <App />
+    </BrowserRouter>
   </StrictMode>
 );

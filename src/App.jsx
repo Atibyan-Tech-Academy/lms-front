@@ -1,6 +1,7 @@
 import React from "react";
 import { Routes, Route } from "react-router-dom";
 
+import Home from "./pages/Home";
 import Login from "./pages/Login";
 import StudentDashboard from "./pages/StudentDashboard";
 import InstructorDashboard from "./pages/InstructorDashboard";
@@ -10,6 +11,9 @@ import PrivateRoute from "./components/PrivateRoute";
 export default function App() {
   return (
     <Routes>
+      {/* Landing Page */}
+      <Route path="/" element={<Home />} />
+
       {/* Public */}
       <Route path="/login" element={<Login />} />
 
