@@ -1,9 +1,17 @@
-import React from 'react'
+// src/layouts/DashboardLayout.jsx
+import React from "react";
+import DashboardNavbar from "../components/DashboardNavbar";
 
-const DashboardLayout = () => {
+export default function DashboardLayout({ children }) {
   return (
-    <div>DashboardLayout</div>
-  )
-}
+    <div className="flex flex-col h-screen">
+      {/* Navbar */}
+      <DashboardNavbar />
 
-export default DashboardLayout
+      {/* Main Content */}
+      <main className="flex-1 overflow-y-auto p-6 bg-gray-50 dark:bg-gray-800">
+        {children}
+      </main>
+    </div>
+  );
+}
