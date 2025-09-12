@@ -1,50 +1,75 @@
+// src/pages/Login.jsx
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import API from "../services/api"; // ✅ your axios instance
+import API from "../services/api";
 import logoLight from "../assets/Aoi2-light.png";
 
 export default function Login() {
-  const [identifier, setIdentifier] = useState(""); // email / student_id / lecturer_id
+  const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
+    setLoading(true);
 
     try {
-      const response = await API.post("login/", {
-        identifier,
-        password,
-      });
+      console.log("Sending login request:", { identifier, password }); // Debug: log exact payload
+      const response = await API.post("login/", { identifier, password });
+      console.log("Login response:", response.data); // Debug: log full response
 
       // Save tokens + role
       localStorage.setItem("access", response.data.access);
       localStorage.setItem("refresh", response.data.refresh);
       localStorage.setItem("role", response.data.role);
+      console.log("Stored in localStorage:", {
+        access: response.data.access,
+        refresh: response.data.refresh,
+        role: response.data.role,
+      });
 
       // Redirect based on role
       if (response.data.role === "STUDENT") {
+        console.log("Redirecting to /student");
         navigate("/student");
       } else if (response.data.role === "LECTURER") {
+        console.log("Redirecting to /instructor");
         navigate("/instructor");
       } else if (response.data.role === "ADMIN") {
+        console.log("Redirecting to /admin");
         navigate("/admin");
       } else {
+        console.log("Redirecting to /");
         navigate("/");
       }
     } catch (err) {
-      console.error(err);
-      setError("Invalid login credentials. Please try again.");
+      console.error("Login error:", {
+        status: err.response?.status,
+        data: err.response?.data,
+        message: err.message,
+      });
+      if (err.response?.status === 401) {
+        setError("Invalid credentials. Check your email/ID or password.");
+      } else if (err.response?.status === 403) {
+        setError("CORS or permission issue. Check Django logs.");
+      } else if (err.message.includes("Network Error")) {
+        setError("Cannot reach backend. Is Django running on http://127.0.0.1:8000?");
+      } else {
+        setError("Login failed: " + (err.response?.data?.detail || err.message));
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <div className="flex h-screen m-3">
-      {/* Left - Form */}
       <div className="w-1/2 flex flex-col justify-center px-16 bg-gray-50">
         <h2 className="text-3xl font-bold mb-6">Welcome Back</h2>
+        {error && <p className="text-red-500 text-sm">{error}</p>}
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
             <label className="block text-sm mb-1">Email / Student ID / Lecturer ID</label>
@@ -57,7 +82,6 @@ export default function Login() {
               required
             />
           </div>
-
           <div>
             <label className="block text-sm mb-1">Password</label>
             <input
@@ -69,19 +93,15 @@ export default function Login() {
               required
             />
           </div>
-
-          {error && <p className="text-red-500 text-sm">{error}</p>}
-
           <button
             type="submit"
+            disabled={loading}
             className="w-full py-3 mt-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
           >
-            Login
+            {loading ? "Logging in..." : "Login"}
           </button>
         </form>
       </div>
-
-      {/* Right - Branding */}
       <div className="w-1/2 bg-blue-900 flex items-center justify-center">
         <div className="text-center text-white px-6">
           <img
