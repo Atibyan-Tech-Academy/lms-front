@@ -1,36 +1,24 @@
-// src/pages/StudentDashboard.jsx
-import React, { useEffect, useState } from "react";
-import API from "../services/api";
-import DashboardLayout from "../layouts/DashboardLayout";
+import React from "react";
+import DashboardNavbar from "../components/DashboardNavbar";
 
-export default function StudentDashboard() {
-  const [profile, setProfile] = useState(null);
-
-  useEffect(() => {
-    API.get("profile/")
-      .then((res) => setProfile(res.data))
-      .catch(() => setProfile(null));
-  }, []);
-
+const StudentLayout = ({ children }) => {
   return (
-    <DashboardLayout>
-      <h1 className="text-3xl font-bold mb-4">Student Dashboard</h1>
-
-      {profile ? (
-        <div className="bg-white shadow-md rounded-lg p-6 max-w-lg">
-          <p className="mb-2">
-            <strong>Name:</strong> {profile.display_name || profile.username}
-          </p>
-          <p className="mb-2">
-            <strong>Email:</strong> {profile.email}
-          </p>
-          <p className="mb-2">
-            <strong>Student ID:</strong> {profile.student_id}
-          </p>
-        </div>
-      ) : (
-        <p>Loading profile...</p>
-      )}
-    </DashboardLayout>
+    <div className="min-h-screen bg-gray-100">
+      <DashboardNavbar />
+      <div
+        style={{
+          background: "linear-gradient(to right, #04CE65, #026833)",
+          width: "100%",
+          textAlign: "center",
+          padding: "20px",
+          color: "white",
+        }}
+      >
+        <h1 className="text-2xl font-bold">Student Dashboard</h1>
+      </div>
+      <div className="max-w-screen-xl mx-auto p-6">{children}</div>
+    </div>
   );
-}
+};
+
+export default StudentLayout;

@@ -1,27 +1,24 @@
-// src/pages/InstructorDashboard.jsx
 import React from "react";
+import DashboardNavbar from "../components/DashboardNavbar";
 
-export default function InstructorDashboard() {
+const InstructorLayout = ({ children }) => {
   return (
-    <div>
-      <h1 className="text-2xl font-bold mb-4">Instructor Dashboard</h1>
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="p-6 bg-white rounded-lg shadow">
-          <h2 className="text-lg font-semibold">My Classes</h2>
-          <p className="text-gray-600 mt-2">4 Active</p>
-        </div>
-
-        <div className="p-6 bg-white rounded-lg shadow">
-          <h2 className="text-lg font-semibold">Submissions</h2>
-          <p className="text-gray-600 mt-2">12 Pending Reviews</p>
-        </div>
-
-        <div className="p-6 bg-white rounded-lg shadow">
-          <h2 className="text-lg font-semibold">Messages</h2>
-          <p className="text-gray-600 mt-2">2 New</p>
-        </div>
+    <div className="min-h-screen bg-gray-100">
+      <DashboardNavbar />
+      <div
+        style={{
+          background: "linear-gradient(to right, #04CE65, #026833)",
+          width: "100%",
+          textAlign: "center",
+          padding: "20px",
+          color: "white",
+        }}
+      >
+        <h1 className="text-2xl font-bold">Instructor Dashboard</h1>
       </div>
+      <div className="max-w-screen-xl mx-auto p-6">{children}</div>
     </div>
   );
-}
+};
+
+export default InstructorLayout;

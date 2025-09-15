@@ -1,27 +1,24 @@
-// src/pages/AdminDashboard.jsx
 import React from "react";
+import DashboardNavbar from "../components/DashboardNavbar";
 
-export default function AdminDashboard() {
+const AdminLayout = ({ children }) => {
   return (
-    <div>
-      <h1 className="text-2xl font-bold mb-4">Admin Dashboard</h1>
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="p-6 bg-white rounded-lg shadow">
-          <h2 className="text-lg font-semibold">Users</h2>
-          <p className="text-gray-600 mt-2">120 Registered</p>
-        </div>
-
-        <div className="p-6 bg-white rounded-lg shadow">
-          <h2 className="text-lg font-semibold">Courses</h2>
-          <p className="text-gray-600 mt-2">15 Active</p>
-        </div>
-
-        <div className="p-6 bg-white rounded-lg shadow">
-          <h2 className="text-lg font-semibold">Reports</h2>
-          <p className="text-gray-600 mt-2">5 Pending</p>
-        </div>
+    <div className="min-h-screen bg-gray-100">
+      <DashboardNavbar />
+      <div
+        style={{
+          background: "linear-gradient(to right, #04CE65, #026833)",
+          width: "100%",
+          textAlign: "center",
+          padding: "20px",
+          color: "white",
+        }}
+      >
+        <h1 className="text-2xl font-bold">Admin Dashboard</h1>
       </div>
+      <div className="max-w-screen-xl mx-auto p-6">{children}</div>
     </div>
   );
-}
+};
+
+export default AdminLayout;
