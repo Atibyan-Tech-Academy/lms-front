@@ -13,6 +13,9 @@ export default function InstructorDashboard() {
   const [newModule, setNewModule] = useState({ title: "" });
   const [newMaterial, setNewMaterial] = useState({ title: "", file: null });
   const [selectedModuleId, setSelectedModuleId] = useState(null);
+  const [progress, setProgress] = useState({});
+  const [announcements, setAnnouncements] = useState([]);
+  const [profile, setProfile] = useState({});
   const [error, setError] = useState(null);
   const navigate = useNavigate();
   const location = useLocation();
@@ -21,35 +24,31 @@ export default function InstructorDashboard() {
 
   useEffect(() => {
     if (!isAuthenticated() || getRole() !== "LECTURER") {
-      console.log("Not authenticated or not LECTURER, redirecting to /login");
       navigate("/login");
       return;
     }
-    API.get("courses/manage/") // Match your original endpoint
-      .then((res) => {
-        console.log("Managed courses fetched:", res.data);
-        setCourses(res.data);
-      })
-      .catch((err) => {
-        console.error("Courses error:", err.response?.data);
-        setError("Failed to load managed courses.");
-      });
+    API.get("courses/manage/")
+      .then((res) => setCourses(res.data))
+      .catch((err) => setError("Failed to load courses."));
+    API.get("accounts/profile/")
+      .then((res) => setProfile(res.data))
+      .catch((err) => setError("Failed to load profile."));
   }, [navigate]);
 
   useEffect(() => {
     if (selectedCourse) {
       API.get(`courses/${selectedCourse.id}/modules/`)
         .then((res) => setModules(res.data))
-        .catch((err) => {
-          console.error("Modules error:", err.response?.data);
-          setError("Failed to load modules.");
-        });
+        .catch((err) => setError("Failed to load modules."));
       API.get(`courses/${selectedCourse.id}/materials/`)
         .then((res) => setMaterials(res.data))
-        .catch((err) => {
-          console.error("Materials error:", err.response?.data);
-          setError("Failed to load materials.");
-        });
+        .catch((err) => setError("Failed to load materials."));
+      API.get(`courses/${selectedCourse.id}/progress/`)
+        .then((res) => setProgress(res.data.reduce((acc, p) => ({ ...acc, [p.module]: p.completed }), {})))
+        .catch((err) => setError("Failed to load progress."));
+      API.get(`courses/${selectedCourse.id}/announcements/`)
+        .then((res) => setAnnouncements(res.data))
+        .catch((err) => setError("Failed to load announcements."));
     }
   }, [selectedCourse]);
 
@@ -60,7 +59,6 @@ export default function InstructorDashboard() {
       setCourses([...courses, res.data]);
       setNewCourse({ title: "", description: "" });
     } catch (err) {
-      console.error("Course creation error:", err.response?.data);
       setError("Failed to create course.");
     }
   };
@@ -73,7 +71,6 @@ export default function InstructorDashboard() {
       setModules([...modules, res.data]);
       setNewModule({ title: "" });
     } catch (err) {
-      console.error("Module creation error:", err.response?.data);
       setError("Failed to create module.");
     }
   };
@@ -87,15 +84,22 @@ export default function InstructorDashboard() {
     if (newMaterial.file) formData.append("file", newMaterial.file);
 
     try {
-      const res = await API.post("materials/", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-      console.log("Upload success:", res.data);
+      await API.post("materials/", formData, { headers: { "Content-Type": "multipart/form-data" } });
       API.get(`courses/${selectedCourse.id}/materials/`).then((res) => setMaterials(res.data));
       setNewMaterial({ title: "", file: null });
     } catch (err) {
-      console.error("Upload error:", err.response?.data);
       setError("Failed to upload material.");
+    }
+  };
+
+  const handlePostAnnouncement = async (e) => {
+    e.preventDefault();
+    const newAnnouncement = { title: "New Announcement", content: "Sample content", course: selectedCourse.id };
+    try {
+      const res = await API.post("announcements/", newAnnouncement);
+      setAnnouncements([...announcements, res.data]);
+    } catch (err) {
+      setError("Failed to post announcement.");
     }
   };
 
@@ -129,11 +133,11 @@ export default function InstructorDashboard() {
             {courses.map((course) => (
               <div
                 key={course.id}
-                className="p-4 bg-white rounded-lg shadow cursor-pointer hover:shadow-lg transition"
+                className="p-4 bg-white rounded-lg shadow cursor-pointer hover:shadow-lg transition dark:bg-gray-800"
                 onClick={() => setSelectedCourse(course)}
               >
                 <h3 className="text-xl font-semibold">{course.title}</h3>
-                <p className="text-gray-600">{course.description}</p>
+                <p className="text-gray-600 dark:text-gray-400">{course.description}</p>
               </div>
             ))}
           </div>
@@ -144,7 +148,7 @@ export default function InstructorDashboard() {
         <div>
           <button
             onClick={() => setSelectedCourse(null)}
-            className="mb-4 text-blue-600 hover:underline"
+            className="mb-4 text-blue-600 hover:underline dark:text-blue-400"
           >
             ← Back to Courses
           </button>
@@ -202,20 +206,61 @@ export default function InstructorDashboard() {
             <a
               key={material.id}
               href={material.file || material.video}
-              className="block text-blue-600 hover:underline mb-1"
+              className="block text-blue-600 hover:underline mb-1 dark:text-blue-400"
               target="_blank"
               rel="noopener noreferrer"
             >
               {material.title} ({material.file_type || "file"})
             </a>
           ))}
+          <h3 className="text-lg font-semibold mt-6 mb-2">Student Progress</h3>
+          {Object.entries(progress).map(([moduleId, completed]) => (
+            <p key={moduleId} className="mb-1">
+              Module {modules.find(m => m.id === parseInt(moduleId))?.title}: {completed ? "Completed" : "In Progress"}
+            </p>
+          ))}
+          <h3 className="text-lg font-semibold mt-6 mb-2">Announcements</h3>
+          {announcements.map((ann) => (
+            <div key={ann.id} className="mb-4 p-4 bg-white rounded-lg shadow dark:bg-gray-800">
+              <h3 className="font-semibold">{ann.title}</h3>
+              <p className="text-gray-600 dark:text-gray-400">{ann.content}</p>
+              <small className="text-gray-500">{new Date(ann.created_at).toLocaleDateString()}</small>
+            </div>
+          ))}
+          <button
+            onClick={handlePostAnnouncement}
+            className="mt-4 py-2 px-4 bg-green-600 text-white rounded-lg hover:bg-green-700"
+          >
+            Post Announcement
+          </button>
         </div>
       )}
 
-      {activeTab === "messages" && (
+      {activeTab === "announcements" && (
         <div>
-          <h2 className="text-2xl font-bold mb-4">Messages</h2>
-          <p>Message feature coming soon for instructors.</p>
+          <h2 className="text-2xl font-bold mb-4">Announcements</h2>
+          {announcements.map((ann) => (
+            <div key={ann.id} className="mb-4 p-4 bg-white rounded-lg shadow dark:bg-gray-800">
+              <h3 className="font-semibold">{ann.title}</h3>
+              <p className="text-gray-600 dark:text-gray-400">{ann.content}</p>
+              <small className="text-gray-500">{new Date(ann.created_at).toLocaleDateString()}</small>
+            </div>
+          ))}
+          <button
+            onClick={handlePostAnnouncement}
+            className="mt-4 py-2 px-4 bg-green-600 text-white rounded-lg hover:bg-green-700"
+          >
+            Post Announcement
+          </button>
+        </div>
+      )}
+
+      {activeTab === "profile" && (
+        <div>
+          <h2 className="text-2xl font-bold mb-4">Profile</h2>
+          <p>Name: {profile.display_name || "Loading..."}</p>
+          <p>Email: {profile.email || "Loading..."}</p>
+          <img src={profile.avatar || "/docs/images/people/profile-picture-3.jpg"} alt="Avatar" className="w-24 h-24 rounded-full mt-4" />
         </div>
       )}
     </InstructorLayout>

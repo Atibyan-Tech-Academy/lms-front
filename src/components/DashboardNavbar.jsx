@@ -9,12 +9,9 @@ const DashboardNavbar = () => {
   const role = localStorage.getItem("role") || "STUDENT";
   const username = localStorage.getItem("username") || "User";
   const email = localStorage.getItem("email") || "user@example.com";
-  const avatar =
-    localStorage.getItem("avatar") ||
-    "/docs/images/people/profile-picture-3.jpg";
+  const avatar = localStorage.getItem("avatar") || "/docs/images/people/profile-picture-3.jpg";
 
-  // derive active tab from hash in URL
-  const activeTab = location.hash.slice(1) || "courses";
+  const activeTab = location.hash.slice(1) || (role === "LECTURER" ? "my-courses" : "courses");
 
   const handleLogout = () => {
     localStorage.clear();
@@ -26,20 +23,20 @@ const DashboardNavbar = () => {
       case "STUDENT":
         return [
           { name: "Courses", href: "#courses" },
-          { name: "Messages", href: "#messages" },
-          { name: "AI Assistant", href: "#ai" },
+          { name: "Announcements", href: "#announcements" },
           { name: "Profile", href: "#profile" },
         ];
       case "LECTURER":
         return [
           { name: "My Courses", href: "#my-courses" },
-          { name: "Messages", href: "#messages" },
+          { name: "Announcements", href: "#announcements" },
+          { name: "Profile", href: "#profile" },
         ];
       case "ADMIN":
         return [
           { name: "Users", href: "#users" },
           { name: "Courses", href: "#courses" },
-          { name: "Settings", href: "#settings" },
+          { name: "Announcements", href: "#announcements" },
         ];
       default:
         return [];
@@ -53,13 +50,8 @@ const DashboardNavbar = () => {
           <img src="/Aoi2-light.png" className="h-8" alt="At-Tibyan LMS Logo" />
         </a>
 
-        {/* Avatar + mobile toggle */}
         <div className="flex md:order-2">
-          <img
-            className="w-8 h-8 rounded-full ms-5"
-            src={avatar}
-            alt="User photo"
-          />
+          <img className="w-8 h-8 rounded-full ms-5" src={avatar} alt="User photo" />
           <button
             type="button"
             className="inline-flex items-center p-2 w-10 h-10 justify-center text-sm text-gray-500 rounded-lg md:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600"
@@ -74,29 +66,21 @@ const DashboardNavbar = () => {
           </button>
         </div>
 
-        {/* Navigation items */}
-        <div
-          className={`items-center justify-between ${
-            mobileMenuOpen ? "block" : "hidden"
-          } w-full md:flex md:w-auto md:order-1`}
-          id="navbar-search"
-        >
+        <div className={`items-center justify-between ${mobileMenuOpen ? "block" : "hidden"} w-full md:flex md:w-auto md:order-1`} id="navbar-search">
           <ul className="flex flex-col p-4 md:p-0 mt-4 font-medium border border-gray-100 rounded-lg bg-gray-50 md:space-x-8 rtl:space-x-reverse md:flex-row md:mt-0 md:border-0 md:bg-white dark:bg-gray-800 md:dark:bg-gray-900 dark:border-gray-700">
             {getMenuItems().map((item) => (
               <li key={item.name}>
                 <a
                   href={item.href}
-                  className={`block py-2 px-3 ${
-                    item.href === `#${activeTab}`
-                      ? "text-white bg-blue-700 rounded-sm md:bg-transparent md:text-blue-700 md:p-0 md:dark:text-blue-500"
-                      : "text-gray-900 rounded-sm hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 md:p-0 md:dark:hover:text-blue-500 dark:text-white dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent dark:border-gray-700"
+                  className={`block py-2 px-3 ${item.href === `#${activeTab}`
+                    ? "text-white bg-blue-700 rounded-sm md:bg-transparent md:text-blue-700 md:p-0 md:dark:text-blue-500"
+                    : "text-gray-900 rounded-sm hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 md:p-0 md:dark:hover:text-blue-500 dark:text-white dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent dark:border-gray-700"
                   }`}
                 >
                   {item.name}
                 </a>
               </li>
             ))}
-
             <li>
               <a
                 href="#"

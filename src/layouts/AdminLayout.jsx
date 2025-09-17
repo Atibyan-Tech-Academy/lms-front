@@ -1,12 +1,10 @@
 import React from "react";
 import DashboardNavbar from "../components/DashboardNavbar";
 
-const AdminLayout = ({ children }) => {
+export default function AdminLayout({ children }) {
   return (
-    <div className="min-h-screen bg-gray-100">
-      {/* Navbar appears ONLY here */}
+    <div className="flex flex-col min-h-screen">
       <DashboardNavbar />
-
       <div
         style={{
           background: "linear-gradient(to right, #04CE65, #026833)",
@@ -18,10 +16,7 @@ const AdminLayout = ({ children }) => {
       >
         <h1 className="text-2xl font-bold">Admin Dashboard</h1>
       </div>
-
-      <div className="max-w-screen-xl mx-auto p-6">{children}</div>
+      <main className="flex-1 overflow-y-auto p-6 bg-gray-50 dark:bg-gray-800">{children}</main>
     </div>
   );
-};
-
-export default AdminLayout;
+}

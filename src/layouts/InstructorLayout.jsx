@@ -1,9 +1,9 @@
 import React from "react";
 import DashboardNavbar from "../components/DashboardNavbar";
 
-const InstructorLayout = ({ children }) => {
+export default function InstructorLayout({ children }) {
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="flex flex-col min-h-screen">
       <DashboardNavbar />
       <div
         style={{
@@ -16,9 +16,7 @@ const InstructorLayout = ({ children }) => {
       >
         <h1 className="text-2xl font-bold">Instructor Dashboard</h1>
       </div>
-      <div className="max-w-screen-xl mx-auto p-6">{children}</div>
+      <main className="flex-1 overflow-y-auto p-6 bg-gray-50 dark:bg-gray-800">{children}</main>
     </div>
   );
-};
-
-export default InstructorLayout;
+}
