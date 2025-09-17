@@ -13,6 +13,7 @@ export default function StudentDashboard() {
       .catch(() => setProfile(null));
   }, []);
 
+<<<<<<< Updated upstream
   return (
           <div>
             <nav class="bg-white border-gray-200 dark:bg-gray-900">
@@ -73,6 +74,12 @@ export default function StudentDashboard() {
       </nav>
       
       
+=======
+export default function StudentLayout({ children }) {
+  return (
+    <div className="flex flex-col min-h-screen">
+      <DashboardNavbar />
+>>>>>>> Stashed changes
       <div
         style={{
           background: "linear-gradient(to right, #04CE65, #026833)",width: "100%",textAlign: "center",padding: "20px",
@@ -81,8 +88,15 @@ export default function StudentDashboard() {
       >
         <h1>Student DashBoard</h1>
       </div>
+<<<<<<< Updated upstream
       
       
           </div>
   );
 }
+=======
+      <main className="flex-1 overflow-y-auto p-6 bg-gray-50 dark:bg-gray-800">{children}</main>
+    </div>
+  );
+}
+>>>>>>> Stashed changes
