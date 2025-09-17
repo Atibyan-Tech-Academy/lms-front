@@ -19,24 +19,14 @@ export default function AdminDashboard() {
       navigate("/login");
       return;
     }
+
     API.get("users/")
-      .then((res) => {
-        console.log("Users fetched:", res.data);
-        setUsers(res.data);
-      })
-      .catch((err) => {
-        console.error("Users error:", err.response?.data);
-        setError("Failed to load users.");
-      });
+      .then((res) => setUsers(res.data))
+      .catch(() => setError("Failed to load users."));
+
     API.get("courses/")
-      .then((res) => {
-        console.log("Courses fetched:", res.data);
-        setCourses(res.data);
-      })
-      .catch((err) => {
-        console.error("Courses error:", err.response?.data);
-        setError("Failed to load courses.");
-      });
+      .then((res) => setCourses(res.data))
+      .catch(() => setError("Failed to load courses."));
   }, [navigate]);
 
   return (
@@ -49,7 +39,9 @@ export default function AdminDashboard() {
           <ul className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {users.map((user) => (
               <li key={user.id} className="p-4 bg-white rounded-lg shadow">
-                <p><strong>{user.username}</strong> ({user.email})</p>
+                <p>
+                  <strong>{user.username}</strong> ({user.email})
+                </p>
                 <p>Role: {user.role}</p>
               </li>
             ))}

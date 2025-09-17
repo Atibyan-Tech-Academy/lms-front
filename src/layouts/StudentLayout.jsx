@@ -4,7 +4,10 @@ import DashboardNavbar from "../components/DashboardNavbar";
 const StudentLayout = ({ children }) => {
   return (
     <div className="min-h-screen bg-gray-100">
+      {/* NAVBAR: only here */}
       <DashboardNavbar />
+
+      {/* Header bar */}
       <div
         style={{
           background: "linear-gradient(to right, #04CE65, #026833)",
@@ -16,6 +19,8 @@ const StudentLayout = ({ children }) => {
       >
         <h1 className="text-2xl font-bold">Student Dashboard</h1>
       </div>
+
+      {/* Page content */}
       <div className="max-w-screen-xl mx-auto p-6">{children}</div>
     </div>
   );

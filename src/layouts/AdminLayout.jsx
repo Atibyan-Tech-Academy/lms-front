@@ -4,7 +4,9 @@ import DashboardNavbar from "../components/DashboardNavbar";
 const AdminLayout = ({ children }) => {
   return (
     <div className="min-h-screen bg-gray-100">
+      {/* Navbar appears ONLY here */}
       <DashboardNavbar />
+
       <div
         style={{
           background: "linear-gradient(to right, #04CE65, #026833)",
@@ -16,6 +18,7 @@ const AdminLayout = ({ children }) => {
       >
         <h1 className="text-2xl font-bold">Admin Dashboard</h1>
       </div>
+
       <div className="max-w-screen-xl mx-auto p-6">{children}</div>
     </div>
   );

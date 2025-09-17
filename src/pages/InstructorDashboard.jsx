@@ -9,7 +9,10 @@ export default function InstructorDashboard() {
   const [selectedCourse, setSelectedCourse] = useState(null);
   const [modules, setModules] = useState([]);
   const [materials, setMaterials] = useState([]);
+  const [newCourse, setNewCourse] = useState({ title: "", description: "" });
+  const [newModule, setNewModule] = useState({ title: "" });
   const [newMaterial, setNewMaterial] = useState({ title: "", file: null });
+  const [selectedModuleId, setSelectedModuleId] = useState(null);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
   const location = useLocation();
@@ -22,7 +25,7 @@ export default function InstructorDashboard() {
       navigate("/login");
       return;
     }
-    API.get("courses/manage/")
+    API.get("courses/manage/") // Match your original endpoint
       .then((res) => {
         console.log("Managed courses fetched:", res.data);
         setCourses(res.data);
@@ -37,27 +40,61 @@ export default function InstructorDashboard() {
     if (selectedCourse) {
       API.get(`courses/${selectedCourse.id}/modules/`)
         .then((res) => setModules(res.data))
-        .catch((err) => setError("Failed to load modules."));
+        .catch((err) => {
+          console.error("Modules error:", err.response?.data);
+          setError("Failed to load modules.");
+        });
       API.get(`courses/${selectedCourse.id}/materials/`)
         .then((res) => setMaterials(res.data))
-        .catch((err) => setError("Failed to load materials."));
+        .catch((err) => {
+          console.error("Materials error:", err.response?.data);
+          setError("Failed to load materials.");
+        });
     }
   }, [selectedCourse]);
 
+  const handleCreateCourse = async (e) => {
+    e.preventDefault();
+    try {
+      const res = await API.post("courses/", newCourse);
+      setCourses([...courses, res.data]);
+      setNewCourse({ title: "", description: "" });
+    } catch (err) {
+      console.error("Course creation error:", err.response?.data);
+      setError("Failed to create course.");
+    }
+  };
+
+  const handleCreateModule = async (e) => {
+    e.preventDefault();
+    if (!selectedCourse) return;
+    try {
+      const res = await API.post(`courses/${selectedCourse.id}/modules/`, newModule);
+      setModules([...modules, res.data]);
+      setNewModule({ title: "" });
+    } catch (err) {
+      console.error("Module creation error:", err.response?.data);
+      setError("Failed to create module.");
+    }
+  };
+
   const handleUploadMaterial = async (e) => {
     e.preventDefault();
+    if (!selectedModuleId) return;
     const formData = new FormData();
     formData.append("title", newMaterial.title);
-    formData.append("file", newMaterial.file);
-    formData.append("course_id", selectedCourse.id);
+    formData.append("module", selectedModuleId);
+    if (newMaterial.file) formData.append("file", newMaterial.file);
 
     try {
-      await API.post("courses/materials/", formData);
-      setNewMaterial({ title: "", file: null });
+      const res = await API.post("materials/", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      console.log("Upload success:", res.data);
       API.get(`courses/${selectedCourse.id}/materials/`).then((res) => setMaterials(res.data));
-      setError(null);
+      setNewMaterial({ title: "", file: null });
     } catch (err) {
-      console.error("Material upload error:", err.response?.data);
+      console.error("Upload error:", err.response?.data);
       setError("Failed to upload material.");
     }
   };
@@ -69,6 +106,25 @@ export default function InstructorDashboard() {
       {activeTab === "my-courses" && !selectedCourse && (
         <div>
           <h2 className="text-2xl font-bold mb-4">My Courses</h2>
+          <form onSubmit={handleCreateCourse} className="mb-6 space-y-4 max-w-md">
+            <input
+              type="text"
+              value={newCourse.title}
+              onChange={(e) => setNewCourse({ ...newCourse, title: e.target.value })}
+              placeholder="Course Title"
+              className="w-full p-3 border rounded-lg"
+              required
+            />
+            <textarea
+              value={newCourse.description}
+              onChange={(e) => setNewCourse({ ...newCourse, description: e.target.value })}
+              placeholder="Description"
+              className="w-full p-3 border rounded-lg"
+            />
+            <button type="submit" className="py-2 px-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+              Create Course
+            </button>
+          </form>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {courses.map((course) => (
               <div
@@ -93,13 +149,30 @@ export default function InstructorDashboard() {
             ← Back to Courses
           </button>
           <h2 className="text-2xl font-bold mb-4">{selectedCourse.title}</h2>
+          <form onSubmit={handleCreateModule} className="mb-6 space-y-4 max-w-md">
+            <input
+              type="text"
+              value={newModule.title}
+              onChange={(e) => setNewModule({ ...newModule, title: e.target.value })}
+              placeholder="Module Title"
+              className="w-full p-3 border rounded-lg"
+              required
+            />
+            <button type="submit" className="py-2 px-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+              Create Module
+            </button>
+          </form>
           <h3 className="text-lg font-semibold mb-2">Modules</h3>
-          {modules.map((module) => (
-            <div key={module.id} className="mb-4 p-4 bg-white rounded-lg shadow">
-              <h4 className="font-semibold text-lg">{module.title}</h4>
-              <p className="text-gray-600">{module.description}</p>
-            </div>
-          ))}
+          <select
+            value={selectedModuleId || ""}
+            onChange={(e) => setSelectedModuleId(e.target.value)}
+            className="w-full p-3 border rounded-lg mb-4"
+          >
+            <option value="">Select a Module</option>
+            {modules.map((module) => (
+              <option key={module.id} value={module.id}>{module.title}</option>
+            ))}
+          </select>
           <h3 className="text-lg font-semibold mt-6 mb-2">Upload Material</h3>
           <form onSubmit={handleUploadMaterial} className="space-y-4 max-w-md">
             <input
@@ -112,7 +185,7 @@ export default function InstructorDashboard() {
             />
             <input
               type="file"
-              accept="application/pdf,video/*,audio/*,text/*"
+              accept="application/pdf,video/*,audio/*,text/*,image/*"
               onChange={(e) => setNewMaterial({ ...newMaterial, file: e.target.files[0] })}
               className="w-full p-3 border rounded-lg"
               required
@@ -128,12 +201,12 @@ export default function InstructorDashboard() {
           {materials.map((material) => (
             <a
               key={material.id}
-              href={material.file}
+              href={material.file || material.video}
               className="block text-blue-600 hover:underline mb-1"
               target="_blank"
               rel="noopener noreferrer"
             >
-              {material.title} ({material.file_type})
+              {material.title} ({material.file_type || "file"})
             </a>
           ))}
         </div>

@@ -1,5 +1,5 @@
 import React from "react";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
 
 import Home from "./pages/Home";
 import Login from "./pages/Login";
@@ -13,48 +13,46 @@ import AdminLayout from "./layouts/AdminLayout";
 
 export default function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        {/* Landing Page */}
-        <Route path="/" element={<Home />} />
+    <Routes>
+      {/* Landing Page */}
+      <Route path="/" element={<Home />} />
 
-        {/* Public */}
-        <Route path="/login" element={<Login />} />
+      {/* Public */}
+      <Route path="/login" element={<Login />} />
 
-        {/* Protected */}
-        <Route
-          path="/student/*"
-          element={
-            <PrivateRoute roleCheck={["STUDENT"]}>
-              <StudentLayout>
-                <StudentDashboard />
-              </StudentLayout>
-            </PrivateRoute>
-          }
-        />
+      {/* Protected */}
+      <Route
+        path="/student/*"
+        element={
+          <PrivateRoute roleCheck={["STUDENT"]}>
+            <StudentLayout>
+              <StudentDashboard />
+            </StudentLayout>
+          </PrivateRoute>
+        }
+      />
 
-        <Route
-          path="/instructor/*"
-          element={
-            <PrivateRoute roleCheck={["LECTURER"]}>
-              <InstructorLayout>
-                <InstructorDashboard />
-              </InstructorLayout>
-            </PrivateRoute>
-          }
-        />
+      <Route
+        path="/instructor/*"
+        element={
+          <PrivateRoute roleCheck={["LECTURER"]}>
+            <InstructorLayout>
+              <InstructorDashboard />
+            </InstructorLayout>
+          </PrivateRoute>
+        }
+      />
 
-        <Route
-          path="/admin/*"
-          element={
-            <PrivateRoute roleCheck={["ADMIN"]}>
-              <AdminLayout>
-                <AdminDashboard />
-              </AdminLayout>
-            </PrivateRoute>
-          }
-        />
-      </Routes>
-    </BrowserRouter>
+      <Route
+        path="/admin/*"
+        element={
+          <PrivateRoute roleCheck={["ADMIN"]}>
+            <AdminLayout>
+              <AdminDashboard />
+            </AdminLayout>
+          </PrivateRoute>
+        }
+      />
+    </Routes>
   );
 }

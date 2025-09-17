@@ -102,7 +102,7 @@ export default function Login() {
           </button>
         </form>
       </div>
-      <div className="w-1/2 bg-blue-900 flex items-center justify-center">
+      <div className="w-1/2 bg-blue-900 flex items-center justify-center bg-image">
         <div className="text-center text-white px-6">
           <img
             src={logoLight}
