@@ -26,7 +26,7 @@ export default function App() {
         element={
           <PrivateRoute roleCheck={["STUDENT"]}>
             <StudentLayout>
-              <StudentDashboard />
+              
             </StudentLayout>
           </PrivateRoute>
         }
@@ -37,7 +37,7 @@ export default function App() {
         element={
           <PrivateRoute roleCheck={["LECTURER"]}>
             <InstructorLayout>
-              <InstructorDashboard />
+              
             </InstructorLayout>
           </PrivateRoute>
         }
@@ -48,7 +48,7 @@ export default function App() {
         element={
           <PrivateRoute roleCheck={["ADMIN"]}>
             <AdminLayout>
-              <AdminDashboard />
+              
             </AdminLayout>
           </PrivateRoute>
         }
