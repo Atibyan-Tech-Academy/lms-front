@@ -26,16 +26,21 @@ export default function Login() {
       localStorage.setItem("refresh", response.data.refresh);
       localStorage.setItem("role", response.data.role);
 
-      // ✅ Save user details (important for navbar)
+      // ✅ Save user details
       if (response.data.user) {
-        localStorage.setItem("user_id", response.data.user.id);
-        localStorage.setItem("username", response.data.user.username || "");
-        localStorage.setItem("email", response.data.user.email || "");
-        localStorage.setItem("student_id", response.data.user.student_id || "");
-        localStorage.setItem("lecturer_id", response.data.user.lecturer_id || "");
-        localStorage.setItem("first_name", response.data.user.first_name || "");
-        localStorage.setItem("last_name", response.data.user.last_name || "");
-        localStorage.setItem("avatar", response.data.user.avatar || "");
+        const user = response.data.user;
+        localStorage.setItem("user_id", user.id);
+        localStorage.setItem("username", user.username || "");
+        localStorage.setItem("email", user.email || "");
+        localStorage.setItem("student_id", user.student_id || "");
+        localStorage.setItem("lecturer_id", user.lecturer_id || "");
+        localStorage.setItem("first_name", user.first_name || "");
+        localStorage.setItem("last_name", user.last_name || "");
+        localStorage.setItem("avatar", user.profile_picture || ""); // ✅ fixed key
+
+        // ✅ Combine first + last name
+        const fullName = [user.first_name, user.last_name].filter(Boolean).join(" ");
+        localStorage.setItem("full_name", fullName || user.username);
       }
 
       // ✅ Redirect based on role
