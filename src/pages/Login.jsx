@@ -17,21 +17,28 @@ export default function Login() {
     setLoading(true);
 
     try {
-      console.log("Sending login request:", { identifier, password }); // Debug: log exact payload
+      console.log("Sending login request:", { identifier, password });
       const response = await API.post("login/", { identifier, password });
-      console.log("Login response:", response.data); // Debug: log full response
+      console.log("Login response:", response.data);
 
-      // Save tokens + role
+      // ✅ Save tokens + role
       localStorage.setItem("access", response.data.access);
       localStorage.setItem("refresh", response.data.refresh);
       localStorage.setItem("role", response.data.role);
-      console.log("Stored in localStorage:", {
-        access: response.data.access,
-        refresh: response.data.refresh,
-        role: response.data.role,
-      });
 
-      // Redirect based on role
+      // ✅ Save user details (important for navbar)
+      if (response.data.user) {
+        localStorage.setItem("user_id", response.data.user.id);
+        localStorage.setItem("username", response.data.user.username || "");
+        localStorage.setItem("email", response.data.user.email || "");
+        localStorage.setItem("student_id", response.data.user.student_id || "");
+        localStorage.setItem("lecturer_id", response.data.user.lecturer_id || "");
+        localStorage.setItem("first_name", response.data.user.first_name || "");
+        localStorage.setItem("last_name", response.data.user.last_name || "");
+        localStorage.setItem("avatar", response.data.user.avatar || "");
+      }
+
+      // ✅ Redirect based on role
       if (response.data.role === "STUDENT") {
         console.log("Redirecting to /student");
         navigate("/student");
