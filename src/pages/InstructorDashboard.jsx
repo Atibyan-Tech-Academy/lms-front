@@ -1,286 +1,154 @@
 // src/pages/InstructorDashboard.jsx
 import React, { useState, useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
-import { getInstructorCourses, createCourse, createModule, createMaterial, getCourseModules, getCourseMaterials, getCourseProgress, createAnnouncement, getInstructorDashboard } from "../services/api";
-import { isAuthenticated, getRole } from "../services/auth";
-import InstructorLayout from "../layouts/InstructorLayout";
+import API from "../services/api";
+import { getRole } from "../services/auth";
 
 export default function InstructorDashboard() {
-  const [courses, setCourses] = useState([]);
-  const [selectedCourse, setSelectedCourse] = useState(null);
-  const [modules, setModules] = useState([]);
-  const [materials, setMaterials] = useState([]);
-  const [newCourse, setNewCourse] = useState({ title: "", description: "" });
-  const [newModule, setNewModule] = useState({ title: "", order: 1 });
-  const [newMaterial, setNewMaterial] = useState({ title: "", file: null });
-  const [selectedModuleId, setSelectedModuleId] = useState(null);
-  const [progress, setProgress] = useState({});
-  const [announcements, setAnnouncements] = useState([]);
-  const [profile, setProfile] = useState({});
+  const [dashboardData, setDashboardData] = useState({});
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const navigate = useNavigate();
-  const location = useLocation();
-
-  const activeTab = location.hash.slice(1) || "my-courses";
+  const [courseForm, setCourseForm] = useState({
+    title: "",
+    description: "",
+    category: "",
+  });
+  const [formError, setFormError] = useState(null);
+  const [formSuccess, setFormSuccess] = useState(null);
 
   useEffect(() => {
-    if (!isAuthenticated() || getRole() !== "INSTRUCTOR") { // Changed LECTURER to INSTRUCTOR
-      navigate("/login");
-      return;
-    }
-    fetchInitialData();
-  }, [navigate]);
+    console.log("InstructorDashboard mounted, role:", getRole());
+    const fetchDashboard = async () => {
+      try {
+        console.log("Fetching dashboard data...");
+        const response = await API.get("courses/instructor/dashboard/");
+        console.log("Dashboard response:", response.data);
+        setDashboardData(response.data);
+      } catch (err) {
+        console.error("Error fetching dashboard:", {
+          status: err.response?.status,
+          data: err.response?.data,
+          message: err.message,
+        });
+        setError("Failed to load dashboard data: " + (err.response?.data?.detail || err.message));
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchDashboard();
+  }, []);
 
-  const fetchInitialData = async () => {
-    try {
-      const [coursesRes, profileRes] = await Promise.all([
-        getInstructorCourses(),
-        API.get("accounts/profile/"),
-      ]);
-      setCourses(coursesRes.data);
-      setProfile(profileRes.data);
-    } catch (err) {
-      setError("Failed to load data: " + (err.response?.data?.detail || err.message));
-    }
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setCourseForm((prev) => ({ ...prev, [name]: value }));
   };
-
-  useEffect(() => {
-    if (selectedCourse) {
-      Promise.all([
-        getCourseModules(selectedCourse.id),
-        getCourseMaterials(selectedCourse.id),
-        getCourseProgress(selectedCourse.id),
-        API.get(`courses/${selectedCourse.id}/announcements/`),
-      ])
-        .then(([modulesRes, materialsRes, progressRes, announcementsRes]) => {
-          setModules(modulesRes.data);
-          setMaterials(materialsRes.data);
-          setProgress(modulesRes.data.reduce((acc, m) => ({ ...acc, [m.id]: progressRes.data.find(p => p.module === m.id)?.completed || false }), {}));
-          setAnnouncements(announcementsRes.data);
-        })
-        .catch(err => setError("Failed to load course details: " + err.message));
-    }
-  }, [selectedCourse]);
 
   const handleCreateCourse = async (e) => {
     e.preventDefault();
+    setFormError(null);
+    setFormSuccess(null);
+
     try {
-      const res = await createCourse(newCourse);
-      setCourses([...courses, res.data]);
-      setNewCourse({ title: "", description: "" });
+      console.log("Creating course with data:", courseForm);
+      const response = await API.createCourse(courseForm);
+      console.log("Course creation response:", response.data);
+      setFormSuccess("Course created successfully!");
+      setCourseForm({ title: "", description: "", category: "" });
+      const dashboardResponse = await API.get("courses/instructor/dashboard/");
+      setDashboardData(dashboardResponse.data);
     } catch (err) {
-      setError("Failed to create course: " + err.message);
+      console.error("Error creating course:", {
+        status: err.response?.status,
+        data: err.response?.data,
+        message: err.message,
+      });
+      setFormError("Failed to create course: " + (err.response?.data?.detail || JSON.stringify(err.response?.data) || err.message));
     }
   };
 
-  const handleCreateModule = async (e) => {
-    e.preventDefault();
-    if (!selectedCourse) return;
-    try {
-      const res = await createModule(selectedCourse.id, newModule);
-      setModules([...modules, res.data]);
-      setNewModule({ title: "", order: 1 });
-    } catch (err) {
-      setError("Failed to create module: " + err.message);
-    }
-  };
-
-  const handleUploadMaterial = async (e) => {
-    e.preventDefault();
-    if (!selectedModuleId) return;
-    const formData = new FormData();
-    formData.append("title", newMaterial.title);
-    if (newMaterial.file) formData.append("file", newMaterial.file);
-
-    try {
-      await createMaterial(selectedModuleId, formData);
-      const res = await getCourseMaterials(selectedCourse.id);
-      setMaterials(res.data);
-      setNewMaterial({ title: "", file: null });
-    } catch (err) {
-      setError("Failed to upload material: " + err.message);
-    }
-  };
-
-  const handlePostAnnouncement = async (e) => {
-    e.preventDefault();
-    const newAnnouncement = { title: "New Announcement", content: "Sample content", course: selectedCourse.id };
-    try {
-      const res = await createAnnouncement(selectedCourse.id, newAnnouncement);
-      setAnnouncements([...announcements, res.data]);
-    } catch (err) {
-      setError("Failed to post announcement: " + err.message);
-    }
-  };
+  if (loading) return <div className="p-6">Loading dashboard...</div>;
+  if (error) return <div className="p-6 text-red-500">{error}</div>;
 
   return (
-    <InstructorLayout>
-      {error && <p className="text-red-500 mb-4">{error}</p>}
+    <div className="p-6 bg-gray-100">
+      <h1 className="text-3xl font-bold mb-6">Instructor Dashboard Content</h1>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        <div className="bg-white p-4 rounded-lg shadow">
+          <h2 className="text-xl font-semibold">Total Courses</h2>
+          <p className="text-2xl">{dashboardData.total_courses || 0}</p>
+        </div>
+        <div className="bg-white p-4 rounded-lg shadow">
+          <h2 className="text-xl font-semibold">Total Enrollments</h2>
+          <p className="text-2xl">{dashboardData.total_enrollments || 0}</p>
+        </div>
+        <div className="bg-white p-4 rounded-lg shadow">
+          <h2 className="text-xl font-semibold">Completed Lessons</h2>
+          <p className="text-2xl">{dashboardData.completed_lessons || 0}</p>
+        </div>
+      </div>
 
-      {activeTab === "my-courses" && !selectedCourse && (
-        <div>
-          <h2 className="text-2xl font-bold mb-4">My Courses</h2>
-          <form onSubmit={handleCreateCourse} className="mb-6 space-y-4 max-w-md">
+      <div className="bg-white p-6 rounded-lg shadow mb-8">
+        <h2 className="text-xl font-semibold mb-4">Create New Course</h2>
+        {formError && <p className="text-red-500 mb-4">{formError}</p>}
+        {formSuccess && <p className="text-green-500 mb-4">{formSuccess}</p>}
+        <form onSubmit={handleCreateCourse} className="space-y-4">
+          <div>
+            <label className="block text-sm mb-1">Course Title</label>
             <input
               type="text"
-              value={newCourse.title}
-              onChange={(e) => setNewCourse({ ...newCourse, title: e.target.value })}
-              placeholder="Course Title"
-              className="w-full p-3 border rounded-lg"
+              name="title"
+              value={courseForm.title}
+              onChange={handleInputChange}
+              className="w-full p-3 border rounded-lg focus:ring focus:ring-blue-500"
               required
             />
-            <textarea
-              value={newCourse.description}
-              onChange={(e) => setNewCourse({ ...newCourse, description: e.target.value })}
-              placeholder="Description"
-              className="w-full p-3 border rounded-lg"
-            />
-            <button type="submit" className="py-2 px-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-              Create Course
-            </button>
-          </form>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {courses.map((course) => (
-              <div
-                key={course.id}
-                className="p-4 bg-white rounded-lg shadow cursor-pointer hover:shadow-lg transition dark:bg-gray-800"
-                onClick={() => setSelectedCourse(course)}
-              >
-                <h3 className="text-xl font-semibold">{course.title}</h3>
-                <p className="text-gray-600 dark:text-gray-400">{course.description}</p>
-              </div>
-            ))}
           </div>
-        </div>
-      )}
-
-      {activeTab === "my-courses" && selectedCourse && (
-        <div>
-          <button
-            onClick={() => setSelectedCourse(null)}
-            className="mb-4 text-blue-600 hover:underline dark:text-blue-400"
-          >
-            ← Back to Courses
-          </button>
-          <h2 className="text-2xl font-bold mb-4">{selectedCourse.title}</h2>
-          <form onSubmit={handleCreateModule} className="mb-6 space-y-4 max-w-md">
+          <div>
+            <label className="block text-sm mb-1">Description</label>
+            <textarea
+              name="description"
+              value={courseForm.description}
+              onChange={handleInputChange}
+              className="w-full p-3 border rounded-lg focus:ring focus:ring-blue-500"
+              rows="4"
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-sm mb-1">Category</label>
             <input
               type="text"
-              value={newModule.title}
-              onChange={(e) => setNewModule({ ...newModule, title: e.target.value })}
-              placeholder="Module Title"
-              className="w-full p-3 border rounded-lg"
+              name="category"
+              value={courseForm.category}
+              onChange={handleInputChange}
+              className="w-full p-3 border rounded-lg focus:ring focus:ring-blue-500"
               required
             />
-            <input
-              type="number"
-              value={newModule.order}
-              onChange={(e) => setNewModule({ ...newModule, order: e.target.value })}
-              placeholder="Order"
-              className="w-full p-3 border rounded-lg"
-              required
-            />
-            <button type="submit" className="py-2 px-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-              Create Module
-            </button>
-          </form>
-          <h3 className="text-lg font-semibold mb-2">Modules</h3>
-          <select
-            value={selectedModuleId || ""}
-            onChange={(e) => setSelectedModuleId(e.target.value)}
-            className="w-full p-3 border rounded-lg mb-4"
+          </div>
+          <button
+            type="submit"
+            className="w-full py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
           >
-            <option value="">Select a Module</option>
-            {modules.map((module) => (
-              <option key={module.id} value={module.id}>{module.title}</option>
+            Create Course
+          </button>
+        </form>
+      </div>
+
+      <div className="bg-white p-6 rounded-lg shadow">
+        <h2 className="text-xl font-semibold mb-4">Recent Enrollments</h2>
+        {dashboardData.recent_enrollments?.length > 0 ? (
+          <ul>
+            {dashboardData.recent_enrollments.map((enrollment, index) => (
+              <li key={index} className="mb-2">
+                <span className="font-semibold">{enrollment.student}</span> enrolled in{" "}
+                <span className="font-semibold">{enrollment.course}</span> on{" "}
+                {new Date(enrollment.enrolled_at).toLocaleDateString()}
+              </li>
             ))}
-          </select>
-          <h3 className="text-lg font-semibold mt-6 mb-2">Upload Material</h3>
-          <form onSubmit={handleUploadMaterial} className="space-y-4 max-w-md">
-            <input
-              type="text"
-              value={newMaterial.title}
-              onChange={(e) => setNewMaterial({ ...newMaterial, title: e.target.value })}
-              placeholder="Material Title"
-              className="w-full p-3 border rounded-lg"
-              required
-            />
-            <input
-              type="file"
-              accept="application/pdf,video/*,audio/*,text/*,image/*"
-              onChange={(e) => setNewMaterial({ ...newMaterial, file: e.target.files[0] })}
-              className="w-full p-3 border rounded-lg"
-              required
-            />
-            <button
-              type="submit"
-              className="py-2 px-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-            >
-              Upload Material
-            </button>
-          </form>
-          <h3 className="text-lg font-semibold mt-6 mb-2">Existing Materials</h3>
-          {materials.map((material) => (
-            <a
-              key={material.id}
-              href={material.file || material.video}
-              className="block text-blue-600 hover:underline mb-1 dark:text-blue-400"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              {material.title} ({material.file_type || "file"})
-            </a>
-          ))}
-          <h3 className="text-lg font-semibold mt-6 mb-2">Student Progress</h3>
-          {Object.entries(progress).map(([moduleId, completed]) => (
-            <p key={moduleId} className="mb-1">
-              Module {modules.find(m => m.id === parseInt(moduleId))?.title}: {completed ? "Completed" : "In Progress"}
-            </p>
-          ))}
-          <h3 className="text-lg font-semibold mt-6 mb-2">Announcements</h3>
-          {announcements.map((ann) => (
-            <div key={ann.id} className="mb-4 p-4 bg-white rounded-lg shadow dark:bg-gray-800">
-              <h3 className="font-semibold">{ann.title}</h3>
-              <p className="text-gray-600 dark:text-gray-400">{ann.content}</p>
-              <small className="text-gray-500">{new Date(ann.created_at).toLocaleDateString()}</small>
-            </div>
-          ))}
-          <button
-            onClick={handlePostAnnouncement}
-            className="mt-4 py-2 px-4 bg-green-600 text-white rounded-lg hover:bg-green-700"
-          >
-            Post Announcement
-          </button>
-        </div>
-      )}
-
-      {activeTab === "announcements" && (
-        <div>
-          <h2 className="text-2xl font-bold mb-4">Announcements</h2>
-          {announcements.map((ann) => (
-            <div key={ann.id} className="mb-4 p-4 bg-white rounded-lg shadow dark:bg-gray-800">
-              <h3 className="font-semibold">{ann.title}</h3>
-              <p className="text-gray-600 dark:text-gray-400">{ann.content}</p>
-              <small className="text-gray-500">{new Date(ann.created_at).toLocaleDateString()}</small>
-            </div>
-          ))}
-          <button
-            onClick={handlePostAnnouncement}
-            className="mt-4 py-2 px-4 bg-green-600 text-white rounded-lg hover:bg-green-700"
-          >
-            Post Announcement
-          </button>
-        </div>
-      )}
-
-      {activeTab === "profile" && (
-        <div>
-          <h2 className="text-2xl font-bold mb-4">Profile</h2>
-          <p>Name: {profile.display_name || "Loading..."}</p>
-          <p>Email: {profile.email || "Loading..."}</p>
-          <img src={profile.avatar || "/docs/images/people/profile-picture-3.jpg"} alt="Avatar" className="w-24 h-24 rounded-full mt-4" />
-        </div>
-      )}
-    </InstructorLayout>
+          </ul>
+        ) : (
+          <p>No recent enrollments.</p>
+        )}
+      </div>
+    </div>
   );
 }

@@ -44,14 +44,14 @@ export default function Login() {
       }
 
       if (response.data.role === "STUDENT") {
-        console.log("Redirecting to /student");
-        navigate("/student");
+        console.log("Redirecting to /student/dashboard"); // Updated
+        navigate("/student/dashboard");
       } else if (response.data.role === "LECTURER") {
-        console.log("Redirecting to /instructor");
-        navigate("/instructor");
+        console.log("Redirecting to /instructor/dashboard"); // Updated
+        navigate("/instructor/dashboard");
       } else if (response.data.role === "ADMIN") {
-        console.log("Redirecting to /admin");
-        navigate("/admin");
+        console.log("Redirecting to /admin/dashboard"); // Updated
+        navigate("/admin/dashboard");
       } else {
         console.log("Redirecting to /");
         navigate("/");
