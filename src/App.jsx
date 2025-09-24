@@ -1,3 +1,4 @@
+// src/App.jsx
 import React from "react";
 import { Routes, Route } from "react-router-dom";
 
@@ -26,7 +27,9 @@ export default function App() {
         element={
           <PrivateRoute roleCheck={["STUDENT"]}>
             <StudentLayout>
-              
+              <Routes>
+                <Route path="dashboard" element={<StudentDashboard />} />
+              </Routes>
             </StudentLayout>
           </PrivateRoute>
         }
@@ -35,9 +38,11 @@ export default function App() {
       <Route
         path="/instructor/*"
         element={
-          <PrivateRoute roleCheck={["LECTURER"]}>
+          <PrivateRoute roleCheck={["LECTURER"]}> {/* Changed to LECTURER to match backend */}
             <InstructorLayout>
-              
+              <Routes>
+                <Route path="dashboard" element={<InstructorDashboard />} />
+              </Routes>
             </InstructorLayout>
           </PrivateRoute>
         }
@@ -48,7 +53,9 @@ export default function App() {
         element={
           <PrivateRoute roleCheck={["ADMIN"]}>
             <AdminLayout>
-              
+              <Routes>
+                <Route path="dashboard" element={<AdminDashboard />} />
+              </Routes>
             </AdminLayout>
           </PrivateRoute>
         }

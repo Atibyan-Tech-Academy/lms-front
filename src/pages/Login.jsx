@@ -17,16 +17,17 @@ export default function Login() {
     setLoading(true);
 
     try {
-      console.log("Sending login request:", { identifier, password });
-      const response = await API.post("login/", { identifier, password });
+      const loginData = { identifier, password };
+      console.log("Sending login request:", loginData);
+      const response = await API.post("accounts/login/", loginData, {
+        headers: { "Content-Type": "application/json" }
+      });
       console.log("Login response:", response.data);
 
-      // ✅ Save tokens + role
       localStorage.setItem("access", response.data.access);
       localStorage.setItem("refresh", response.data.refresh);
       localStorage.setItem("role", response.data.role);
 
-      // ✅ Save user details
       if (response.data.user) {
         const user = response.data.user;
         localStorage.setItem("user_id", user.id);
@@ -36,14 +37,12 @@ export default function Login() {
         localStorage.setItem("lecturer_id", user.lecturer_id || "");
         localStorage.setItem("first_name", user.first_name || "");
         localStorage.setItem("last_name", user.last_name || "");
-        localStorage.setItem("avatar", user.profile_picture || ""); // ✅ fixed key
+        localStorage.setItem("avatar", user.profile_picture || "");
 
-        // ✅ Combine first + last name
         const fullName = [user.first_name, user.last_name].filter(Boolean).join(" ");
         localStorage.setItem("full_name", fullName || user.username);
       }
 
-      // ✅ Redirect based on role
       if (response.data.role === "STUDENT") {
         console.log("Redirecting to /student");
         navigate("/student");
@@ -62,6 +61,7 @@ export default function Login() {
         status: err.response?.status,
         data: err.response?.data,
         message: err.message,
+        request: err.config?.data,
       });
       if (err.response?.status === 401) {
         setError("Invalid credentials. Check your email/ID or password.");
@@ -70,7 +70,7 @@ export default function Login() {
       } else if (err.message.includes("Network Error")) {
         setError("Cannot reach backend. Is Django running on http://127.0.0.1:8000?");
       } else {
-        setError("Login failed: " + (err.response?.data?.detail || err.message));
+        setError("Login failed: " + (err.response?.data?.detail || err.response?.data?.non_field_errors?.[0] || JSON.stringify(err.response?.data) || err.message));
       }
     } finally {
       setLoading(false);

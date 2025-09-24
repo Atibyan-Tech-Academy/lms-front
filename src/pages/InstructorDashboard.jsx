@@ -1,6 +1,7 @@
+// src/pages/InstructorDashboard.jsx
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import API from "../services/api";
+import { getInstructorCourses, createCourse, createModule, createMaterial, getCourseModules, getCourseMaterials, getCourseProgress, createAnnouncement, getInstructorDashboard } from "../services/api";
 import { isAuthenticated, getRole } from "../services/auth";
 import InstructorLayout from "../layouts/InstructorLayout";
 
@@ -10,7 +11,7 @@ export default function InstructorDashboard() {
   const [modules, setModules] = useState([]);
   const [materials, setMaterials] = useState([]);
   const [newCourse, setNewCourse] = useState({ title: "", description: "" });
-  const [newModule, setNewModule] = useState({ title: "" });
+  const [newModule, setNewModule] = useState({ title: "", order: 1 });
   const [newMaterial, setNewMaterial] = useState({ title: "", file: null });
   const [selectedModuleId, setSelectedModuleId] = useState(null);
   const [progress, setProgress] = useState({});
@@ -23,43 +24,52 @@ export default function InstructorDashboard() {
   const activeTab = location.hash.slice(1) || "my-courses";
 
   useEffect(() => {
-    if (!isAuthenticated() || getRole() !== "LECTURER") {
+    if (!isAuthenticated() || getRole() !== "INSTRUCTOR") { // Changed LECTURER to INSTRUCTOR
       navigate("/login");
       return;
     }
-    API.get("courses/manage/")
-      .then((res) => setCourses(res.data))
-      .catch((err) => setError("Failed to load courses."));
-    API.get("accounts/profile/")
-      .then((res) => setProfile(res.data))
-      .catch((err) => setError("Failed to load profile."));
+    fetchInitialData();
   }, [navigate]);
+
+  const fetchInitialData = async () => {
+    try {
+      const [coursesRes, profileRes] = await Promise.all([
+        getInstructorCourses(),
+        API.get("accounts/profile/"),
+      ]);
+      setCourses(coursesRes.data);
+      setProfile(profileRes.data);
+    } catch (err) {
+      setError("Failed to load data: " + (err.response?.data?.detail || err.message));
+    }
+  };
 
   useEffect(() => {
     if (selectedCourse) {
-      API.get(`courses/${selectedCourse.id}/modules/`)
-        .then((res) => setModules(res.data))
-        .catch((err) => setError("Failed to load modules."));
-      API.get(`courses/${selectedCourse.id}/materials/`)
-        .then((res) => setMaterials(res.data))
-        .catch((err) => setError("Failed to load materials."));
-      API.get(`courses/${selectedCourse.id}/progress/`)
-        .then((res) => setProgress(res.data.reduce((acc, p) => ({ ...acc, [p.module]: p.completed }), {})))
-        .catch((err) => setError("Failed to load progress."));
-      API.get(`courses/${selectedCourse.id}/announcements/`)
-        .then((res) => setAnnouncements(res.data))
-        .catch((err) => setError("Failed to load announcements."));
+      Promise.all([
+        getCourseModules(selectedCourse.id),
+        getCourseMaterials(selectedCourse.id),
+        getCourseProgress(selectedCourse.id),
+        API.get(`courses/${selectedCourse.id}/announcements/`),
+      ])
+        .then(([modulesRes, materialsRes, progressRes, announcementsRes]) => {
+          setModules(modulesRes.data);
+          setMaterials(materialsRes.data);
+          setProgress(modulesRes.data.reduce((acc, m) => ({ ...acc, [m.id]: progressRes.data.find(p => p.module === m.id)?.completed || false }), {}));
+          setAnnouncements(announcementsRes.data);
+        })
+        .catch(err => setError("Failed to load course details: " + err.message));
     }
   }, [selectedCourse]);
 
   const handleCreateCourse = async (e) => {
     e.preventDefault();
     try {
-      const res = await API.post("courses/", newCourse);
+      const res = await createCourse(newCourse);
       setCourses([...courses, res.data]);
       setNewCourse({ title: "", description: "" });
     } catch (err) {
-      setError("Failed to create course.");
+      setError("Failed to create course: " + err.message);
     }
   };
 
@@ -67,11 +77,11 @@ export default function InstructorDashboard() {
     e.preventDefault();
     if (!selectedCourse) return;
     try {
-      const res = await API.post(`courses/${selectedCourse.id}/modules/`, newModule);
+      const res = await createModule(selectedCourse.id, newModule);
       setModules([...modules, res.data]);
-      setNewModule({ title: "" });
+      setNewModule({ title: "", order: 1 });
     } catch (err) {
-      setError("Failed to create module.");
+      setError("Failed to create module: " + err.message);
     }
   };
 
@@ -80,15 +90,15 @@ export default function InstructorDashboard() {
     if (!selectedModuleId) return;
     const formData = new FormData();
     formData.append("title", newMaterial.title);
-    formData.append("module", selectedModuleId);
     if (newMaterial.file) formData.append("file", newMaterial.file);
 
     try {
-      await API.post("materials/", formData, { headers: { "Content-Type": "multipart/form-data" } });
-      API.get(`courses/${selectedCourse.id}/materials/`).then((res) => setMaterials(res.data));
+      await createMaterial(selectedModuleId, formData);
+      const res = await getCourseMaterials(selectedCourse.id);
+      setMaterials(res.data);
       setNewMaterial({ title: "", file: null });
     } catch (err) {
-      setError("Failed to upload material.");
+      setError("Failed to upload material: " + err.message);
     }
   };
 
@@ -96,10 +106,10 @@ export default function InstructorDashboard() {
     e.preventDefault();
     const newAnnouncement = { title: "New Announcement", content: "Sample content", course: selectedCourse.id };
     try {
-      const res = await API.post("announcements/", newAnnouncement);
+      const res = await createAnnouncement(selectedCourse.id, newAnnouncement);
       setAnnouncements([...announcements, res.data]);
     } catch (err) {
-      setError("Failed to post announcement.");
+      setError("Failed to post announcement: " + err.message);
     }
   };
 
@@ -159,6 +169,14 @@ export default function InstructorDashboard() {
               value={newModule.title}
               onChange={(e) => setNewModule({ ...newModule, title: e.target.value })}
               placeholder="Module Title"
+              className="w-full p-3 border rounded-lg"
+              required
+            />
+            <input
+              type="number"
+              value={newModule.order}
+              onChange={(e) => setNewModule({ ...newModule, order: e.target.value })}
+              placeholder="Order"
               className="w-full p-3 border rounded-lg"
               required
             />

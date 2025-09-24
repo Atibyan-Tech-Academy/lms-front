@@ -1,6 +1,7 @@
+// src/pages/StudentDashboard.jsx
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import API from "../services/api";
+import { getEnrolledCourses, getCourseModules, getCourseMaterials, getCourseProgress, markAsComplete } from "../services/api";
 import { isAuthenticated, getRole } from "../services/auth";
 import StudentLayout from "../layouts/StudentLayout";
 
@@ -23,37 +24,46 @@ export default function StudentDashboard() {
       navigate("/login");
       return;
     }
-    API.get("courses/enrolled/")
-      .then((res) => setCourses(res.data))
-      .catch((err) => setError("Failed to load courses."));
-    API.get("accounts/profile/")
-      .then((res) => setProfile(res.data))
-      .catch((err) => setError("Failed to load profile."));
-    API.get("announcements/")
-      .then((res) => setAnnouncements(res.data))
-      .catch((err) => setError("Failed to load announcements."));
+    fetchInitialData();
   }, [navigate]);
+
+  const fetchInitialData = async () => {
+    try {
+      const [coursesRes, profileRes, announcementsRes] = await Promise.all([
+        getEnrolledCourses(),
+        API.get("accounts/profile/"),
+        API.get("announcements/"),
+      ]);
+      setCourses(coursesRes.data);
+      setProfile(profileRes.data);
+      setAnnouncements(announcementsRes.data);
+    } catch (err) {
+      setError("Failed to load data: " + (err.response?.data?.detail || err.message));
+    }
+  };
 
   useEffect(() => {
     if (selectedCourse) {
-      API.get(`courses/${selectedCourse.id}/modules/`)
-        .then((res) => setModules(res.data))
-        .catch((err) => setError("Failed to load modules."));
-      API.get(`courses/${selectedCourse.id}/materials/`)
-        .then((res) => setMaterials(res.data))
-        .catch((err) => setError("Failed to load materials."));
-      API.get(`courses/${selectedCourse.id}/progress/`)
-        .then((res) => setProgress(res.data.reduce((acc, p) => ({ ...acc, [p.module]: p.completed }), {})))
-        .catch((err) => setError("Failed to load progress."));
+      Promise.all([
+        getCourseModules(selectedCourse.id),
+        getCourseMaterials(selectedCourse.id),
+        getCourseProgress(selectedCourse.id),
+      ])
+        .then(([modulesRes, materialsRes, progressRes]) => {
+          setModules(modulesRes.data);
+          setMaterials(materialsRes.data);
+          setProgress(modulesRes.data.reduce((acc, m) => ({ ...acc, [m.id]: progressRes.data.find(p => p.module === m.id)?.completed || false }), {}));
+        })
+        .catch(err => setError("Failed to load course details: " + err.message));
     }
   }, [selectedCourse]);
 
-  const markAsComplete = async (moduleId) => {
+  const handleMarkAsComplete = async (moduleId) => {
     try {
-      await API.post("progress/", { module_id: moduleId, completed: true });
-      setProgress((prev) => ({ ...prev, [moduleId]: true }));
+      await markAsComplete(moduleId);
+      setProgress(prev => ({ ...prev, [moduleId]: true }));
     } catch (err) {
-      setError("Failed to update progress.");
+      setError("Failed to update progress: " + err.message);
     }
   };
 
@@ -99,7 +109,7 @@ export default function StudentDashboard() {
             <div key={module.id} className="mb-4 p-4 bg-white rounded-lg shadow dark:bg-gray-800">
               <h4 className="font-semibold text-lg">{module.title}</h4>
               <button
-                onClick={() => markAsComplete(module.id)}
+                onClick={() => handleMarkAsComplete(module.id)}
                 className="py-1 px-3 bg-green-600 text-white rounded-lg hover:bg-green-700"
                 disabled={progress[module.id]}
               >
@@ -111,12 +121,12 @@ export default function StudentDashboard() {
           {materials.map((material) => (
             <a
               key={material.id}
-              href={material.file || material.video}
+              href={material.file || material.video || material.video_url}
               className="block text-blue-600 hover:underline mb-1 dark:text-blue-400"
               target="_blank"
               rel="noopener noreferrer"
             >
-              {material.title} ({material.file_type || "file"})
+              {material.title} ({material.file ? "file" : material.video ? "video" : "video_url"})
             </a>
           ))}
         </div>
@@ -129,7 +139,7 @@ export default function StudentDashboard() {
             <div key={ann.id} className="mb-4 p-4 bg-white rounded-lg shadow dark:bg-gray-800">
               <h3 className="font-semibold">{ann.title}</h3>
               <p className="text-gray-600 dark:text-gray-400">{ann.content}</p>
-              <small className="text-gray-500">{new Date(ann.created_at).toLocaleDateString()}</small>
+              <small className="text-gray-500">{new Date(ann.announcement.created_at).toLocaleDateString()}</small>
             </div>
           ))}
         </div>
@@ -138,7 +148,7 @@ export default function StudentDashboard() {
       {activeTab === "profile" && (
         <div>
           <h2 className="text-2xl font-bold mb-4">Profile</h2>
-          <p>Name: {profile.display_name || "Loading..."}</p>
+          <p>Name: {profile.full_name || "Loading..."}</p>
           <p>Email: {profile.email || "Loading..."}</p>
           <img src={profile.avatar || "/docs/images/people/profile-picture-3.jpg"} alt="Avatar" className="w-24 h-24 rounded-full mt-4" />
         </div>
