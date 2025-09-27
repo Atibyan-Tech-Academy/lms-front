@@ -39,6 +39,7 @@ export default function Login() {
   };
 
   return (
+<<<<<<< Updated upstream
     <main className="m-auto">
      
     <section  class="w-1/2 m-auto grid grid-col-2 ">
@@ -72,6 +73,57 @@ export default function Login() {
           Login
         </button>
       </form>
+=======
+    <div className="flex h-screen m-3">
+      <div className="w-1/2 flex flex-col justify-center px-16 bg-gray-50">
+        <h2 className="text-3xl font-bold mb-6">Welcome Back</h2>
+        {error && <p className="text-red-500 text-sm">{error}</p>}
+        <form onSubmit={handleSubmit} className="space-y-5">
+          <div>
+            <label className="block text-sm mb-1">Email / Student ID / Lecturer ID</label>
+            <input
+              type="text"
+              value={identifier}
+              onChange={(e) => setIdentifier(e.target.value)}
+              placeholder="Enter email or ID"
+              className="mb-3 w-full p-3 border rounded-lg focus:ring focus:ring-blue-500"
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-sm mb-1">Password</label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Enter password"
+              className="w-full p-3 border rounded-lg focus:ring focus:ring-blue-500"
+              required
+            />
+          </div>
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full py-3 mt-3 bg-green-800 text-white rounded-lg hover:bg-green-500 transition"
+          >
+            {loading ? "Logging in..." : "Login"}
+          </button>
+        </form>
+      </div>
+      <div className="w-1/2 bg-blue-900 flex items-center justify-center bg-image">
+        <div className="text-center text-white px-6">
+          <img
+            src={logoLight}
+            alt="AT-TIBYAN TECH ACADEMY"
+            className="rounded-xl shadow-lg mb-6 mx-auto"
+          />
+          <h1 className="text-2xl font-bold">AT-TIBYAN TECH ACADEMY</h1>
+          <p className="mt-2 text-lg">
+            Transform Your Career with At-Tibyan Tech Academy
+          </p>
+        </div>
+      </div>
+>>>>>>> Stashed changes
     </div>
 
    <div className="flex justify-center items-center min-h-screen ">
