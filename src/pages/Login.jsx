@@ -1,7 +1,8 @@
 // src/pages/Login.jsx
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import API from "../services/api";
+import API, { login } from "../services/api";
+import { logout } from "../services/auth";
 import logoLight from "../assets/Aoi2-light.png";
 
 export default function Login() {
@@ -17,30 +18,42 @@ export default function Login() {
     setLoading(true);
 
     try {
-      console.log("Sending login request:", { identifier, password }); // Debug: log exact payload
-      const response = await API.post("login/", { identifier, password });
-      console.log("Login response:", response.data); // Debug: log full response
+      const loginData = { identifier, password };
+      console.log("Sending login request:", loginData);
+      const response = await API.post("accounts/login/", loginData, {
+        headers: { "Content-Type": "application/json" }
+      });
+      console.log("Login response:", response.data);
 
-      // Save tokens + role
       localStorage.setItem("access", response.data.access);
       localStorage.setItem("refresh", response.data.refresh);
       localStorage.setItem("role", response.data.role);
-      console.log("Stored in localStorage:", {
-        access: response.data.access,
-        refresh: response.data.refresh,
-        role: response.data.role,
-      });
 
-      // Redirect based on role
+      if (response.data.user) {
+        const user = response.data.user;
+        localStorage.setItem("user_id", user.id);
+        localStorage.setItem("username", user.username || "");
+        localStorage.setItem("email", user.email || "");
+        localStorage.setItem("student_id", user.student_id || "");
+        localStorage.setItem("lecturer_id", user.lecturer_id || "");
+        localStorage.setItem("first_name", user.first_name || "");
+        localStorage.setItem("last_name", user.last_name || "");
+        localStorage.setItem("avatar", user.profile_image || "");
+
+
+        const fullName = [user.first_name, user.last_name].filter(Boolean).join(" ");
+        localStorage.setItem("full_name", fullName || user.username);
+      }
+
       if (response.data.role === "STUDENT") {
-        console.log("Redirecting to /student");
-        navigate("/student");
+        console.log("Redirecting to /student/dashboard"); // Updated
+        navigate("/student/dashboard");
       } else if (response.data.role === "LECTURER") {
-        console.log("Redirecting to /instructor");
-        navigate("/instructor");
+        console.log("Redirecting to /instructor/dashboard"); // Updated
+        navigate("/instructor/dashboard");
       } else if (response.data.role === "ADMIN") {
-        console.log("Redirecting to /admin");
-        navigate("/admin");
+        console.log("Redirecting to /admin/dashboard"); // Updated
+        navigate("/admin/dashboard");
       } else {
         console.log("Redirecting to /");
         navigate("/");
@@ -50,15 +63,16 @@ export default function Login() {
         status: err.response?.status,
         data: err.response?.data,
         message: err.message,
+        request: err.config?.data,
       });
       if (err.response?.status === 401) {
         setError("Invalid credentials. Check your email/ID or password.");
       } else if (err.response?.status === 403) {
-        setError("CORS or permission issue. Check Django logs.");
+        setError("You do not have permission to access this resource.");
       } else if (err.message.includes("Network Error")) {
         setError("Cannot reach backend. Is Django running on http://127.0.0.1:8000?");
       } else {
-        setError("Login failed: " + (err.response?.data?.detail || err.message));
+        setError("Login failed: " + (err.response?.data?.detail || err.response?.data?.non_field_errors?.[0] || JSON.stringify(err.response?.data) || err.message));
       }
     } finally {
       setLoading(false);
@@ -69,7 +83,7 @@ export default function Login() {
     <div className="flex h-screen m-3">
       <div className="w-1/2 flex flex-col justify-center px-16 bg-gray-50">
         <h2 className="text-3xl font-bold mb-6">Welcome Back</h2>
-        {error && <p className="text-red-500 text-sm">{error}</p>}
+        {error && <p className="text-red-500 text-sm mb-3">{error}</p>}
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
             <label className="block text-sm mb-1">Email / Student ID / Lecturer ID</label>
@@ -102,7 +116,8 @@ export default function Login() {
           </button>
         </form>
       </div>
-      <div className="w-1/2 bg-blue-900 flex items-center justify-center bg-image">
+
+      <div className="w-1/2 bg-blue-900 flex items-center justify-center">
         <div className="text-center text-white px-6">
           <img
             src={logoLight}

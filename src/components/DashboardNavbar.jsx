@@ -1,5 +1,8 @@
-import React, { useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+
+import React, { useState, useEffect } from "react";
+import { useNavigate, useLocation, Link } from "react-router-dom";
+import image from "../assets/aoi-portal.png";
+import { getProfile } from "../services/api";
 
 const DashboardNavbar = () => {
   const navigate = useNavigate();
