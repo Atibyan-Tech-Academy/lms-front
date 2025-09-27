@@ -1,79 +1,84 @@
-import { useState } from "react";
+// src/pages/Login.jsx
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import API from "../services/api";
-import image1 from "../assets/image1.jpg";
-import image2 from "../assets/Aoi-portal .png";
-import { boxShadow } from "flowbite-react/plugin/tailwindcss/theme";
+import logoLight from "../assets/Aoi2-light.png";
 
 export default function Login() {
-  const [form, setForm] = useState({ identifier: "", password: "" });
+  const [identifier, setIdentifier] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError(null);
+    setLoading(true);
+
     try {
-      const res = await API.post("login/", form);
+      const loginData = { identifier, password };
+      console.log("Sending login request:", loginData);
+      const response = await API.post("accounts/login/", loginData, {
+        headers: { "Content-Type": "application/json" }
+      });
+      console.log("Login response:", response.data);
 
-      // save tokens
-      localStorage.setItem("access", res.data.access);
-      localStorage.setItem("refresh", res.data.refresh);
+      localStorage.setItem("access", response.data.access);
+      localStorage.setItem("refresh", response.data.refresh);
+      localStorage.setItem("role", response.data.role);
 
-      // get user profile to know role
-      const profile = await API.get("profile/");
-      localStorage.setItem("role", profile.data.role);
+      if (response.data.user) {
+        const user = response.data.user;
+        localStorage.setItem("user_id", user.id);
+        localStorage.setItem("username", user.username || "");
+        localStorage.setItem("email", user.email || "");
+        localStorage.setItem("student_id", user.student_id || "");
+        localStorage.setItem("lecturer_id", user.lecturer_id || "");
+        localStorage.setItem("first_name", user.first_name || "");
+        localStorage.setItem("last_name", user.last_name || "");
+        localStorage.setItem("avatar", user.profile_image || "");
 
-      if (profile.data.role === "STUDENT") {
-        navigate("/student");
-      } else if (profile.data.role === "INSTRUCTOR") {
-        navigate("/instructor");
+
+        const fullName = [user.first_name, user.last_name].filter(Boolean).join(" ");
+        localStorage.setItem("full_name", fullName || user.username);
+      }
+
+      if (response.data.role === "STUDENT") {
+        console.log("Redirecting to /student/dashboard"); // Updated
+        navigate("/student/dashboard");
+      } else if (response.data.role === "LECTURER") {
+        console.log("Redirecting to /instructor/dashboard"); // Updated
+        navigate("/instructor/dashboard");
+      } else if (response.data.role === "ADMIN") {
+        console.log("Redirecting to /admin/dashboard"); // Updated
+        navigate("/admin/dashboard");
       } else {
-        navigate("/admin");
+        console.log("Redirecting to /");
+        navigate("/");
       }
     } catch (err) {
-      alert("Invalid login credentials");
+      console.error("Login error:", {
+        status: err.response?.status,
+        data: err.response?.data,
+        message: err.message,
+        request: err.config?.data,
+      });
+      if (err.response?.status === 401) {
+        setError("Invalid credentials. Check your email/ID or password.");
+      } else if (err.response?.status === 403) {
+        setError("CORS or permission issue. Check Django logs.");
+      } else if (err.message.includes("Network Error")) {
+        setError("Cannot reach backend. Is Django running on http://127.0.0.1:8000?");
+      } else {
+        setError("Login failed: " + (err.response?.data?.detail || err.response?.data?.non_field_errors?.[0] || JSON.stringify(err.response?.data) || err.message));
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-<<<<<<< Updated upstream
-    <main className="m-auto">
-     
-    <section  class="w-1/2 m-auto grid grid-col-2 ">
-      
-    <div className="flex items-center justify-center min-h-screen place-content-center ">
-      <form
-        onSubmit={handleSubmit}
-        className="bg-white p-8 rounded-xl shadow-md w-96 h-96 place-content-center"
-      >
-        <h2 className="text-2xl font-bold mb-6 text-center">Login</h2>
-        <input
-          type="text"
-          name="identifier"
-          placeholder="Student ID / Lecturer ID / Email"
-          value={form.identifier}
-          onChange={handleChange}
-          className="w-full mb-4 p-3 border rounded-lg"
-        />
-        <input
-          type="password"
-          name="password"
-          placeholder="Password"
-          value={form.password}
-          onChange={handleChange}
-          className="w-full mb-4 p-3 border rounded-lg"
-        />
-        <button
-          type="submit"
-          className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700"
-        >
-          Login
-        </button>
-      </form>
-=======
     <div className="flex h-screen m-3">
       <div className="w-1/2 flex flex-col justify-center px-16 bg-gray-50">
         <h2 className="text-3xl font-bold mb-6">Welcome Back</h2>
@@ -123,34 +128,6 @@ export default function Login() {
           </p>
         </div>
       </div>
->>>>>>> Stashed changes
     </div>
-
-   <div className="flex justify-center items-center min-h-screen ">
-   <img
-      src={image2}
-      alt="Overlay"
-      className=" w-60 h-full object-contain z-10 opacity-80 "
-    />
-    <div style={{backgroundColor:"#00000067"}} className=" w-full h-full bg--500 z-10" />
-    {/* Overlay Image */}
-   
-  
-    {/* Background Image */}
-    <img
-      src={image1}
-      alt="Background"
-      className=" w-full h-full object-cover z-0"
-    />
-</div>
-  
-</section>
-
-
-
-    </main>
-  
-    
-    
   );
 }

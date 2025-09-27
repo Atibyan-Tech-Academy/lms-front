@@ -1,27 +1,158 @@
-import { useEffect, useState } from "react";
-import API from "../services/api";
+// src/pages/StudentDashboard.jsx
+import React, { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+import { getEnrolledCourses, getCourseModules, getCourseMaterials, getCourseProgress, markAsComplete } from "../services/api";
+import { isAuthenticated, getRole } from "../services/auth";
+import StudentLayout from "../layouts/StudentLayout";
 
 export default function StudentDashboard() {
-  const [profile, setProfile] = useState(null);
+  const [courses, setCourses] = useState([]);
+  const [selectedCourse, setSelectedCourse] = useState(null);
+  const [modules, setModules] = useState([]);
+  const [materials, setMaterials] = useState([]);
+  const [progress, setProgress] = useState({});
+  const [announcements, setAnnouncements] = useState([]);
+  const [profile, setProfile] = useState({});
+  const [error, setError] = useState(null);
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const activeTab = location.hash.slice(1) || "courses";
 
   useEffect(() => {
-    API.get("profile/")
-      .then((res) => setProfile(res.data))
-      .catch(() => setProfile(null));
-  }, []);
+    if (!isAuthenticated() || getRole() !== "STUDENT") {
+      navigate("/login");
+      return;
+    }
+    fetchInitialData();
+  }, [navigate]);
+
+  const fetchInitialData = async () => {
+    try {
+      const [coursesRes, profileRes, announcementsRes] = await Promise.all([
+        getEnrolledCourses(),
+        API.get("accounts/profile/"),
+        API.get("announcements/"),
+      ]);
+      setCourses(coursesRes.data);
+      setProfile(profileRes.data);
+      setAnnouncements(announcementsRes.data);
+    } catch (err) {
+      setError("Failed to load data: " + (err.response?.data?.detail || err.message));
+    }
+  };
+
+  useEffect(() => {
+    if (selectedCourse) {
+      Promise.all([
+        getCourseModules(selectedCourse.id),
+        getCourseMaterials(selectedCourse.id),
+        getCourseProgress(selectedCourse.id),
+      ])
+        .then(([modulesRes, materialsRes, progressRes]) => {
+          setModules(modulesRes.data);
+          setMaterials(materialsRes.data);
+          setProgress(modulesRes.data.reduce((acc, m) => ({ ...acc, [m.id]: progressRes.data.find(p => p.module === m.id)?.completed || false }), {}));
+        })
+        .catch(err => setError("Failed to load course details: " + err.message));
+    }
+  }, [selectedCourse]);
+
+  const handleMarkAsComplete = async (moduleId) => {
+    try {
+      await markAsComplete(moduleId);
+      setProgress(prev => ({ ...prev, [moduleId]: true }));
+    } catch (err) {
+      setError("Failed to update progress: " + err.message);
+    }
+  };
 
   return (
-    <div className="p-6">
-      <h1 className="text-3xl font-bold">Student Dashboard</h1>
-      {profile ? (
-        <div className="mt-4 bg-white shadow-md rounded-lg p-4">
-          <p><strong>Name:</strong> {profile.display_name || profile.username}</p>
-          <p><strong>Email:</strong> {profile.email}</p>
-          <p><strong>Student ID:</strong> {profile.student_id}</p>
+    <StudentLayout>
+      {error && <p className="text-red-500 mb-4">{error}</p>}
+
+      {activeTab === "courses" && !selectedCourse && (
+        <div>
+          <h2 className="text-2xl font-bold mb-4">My Courses</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {courses.map((course) => (
+              <div
+                key={course.id}
+                className="p-4 bg-white rounded-lg shadow cursor-pointer hover:shadow-lg transition dark:bg-gray-800"
+                onClick={() => setSelectedCourse(course)}
+              >
+                <h3 className="text-xl font-semibold">{course.title}</h3>
+                <p className="text-gray-600 dark:text-gray-400">{course.description}</p>
+                <div className="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
+                  <div
+                    className="bg-blue-600 h-2.5 rounded-full"
+                    style={{ width: `${Object.values(progress).filter(Boolean).length / modules.length * 100 || 0}%` }}
+                  ></div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
-      ) : (
-        <p>Loading profile...</p>
       )}
-    </div>
+
+      {activeTab === "courses" && selectedCourse && (
+        <div>
+          <button
+            onClick={() => setSelectedCourse(null)}
+            className="mb-4 text-blue-600 hover:underline dark:text-blue-400"
+          >
+            ← Back to Courses
+          </button>
+          <h2 className="text-2xl font-bold mb-4">{selectedCourse.title}</h2>
+          <h3 className="text-lg font-semibold mb-2">Modules</h3>
+          {modules.map((module) => (
+            <div key={module.id} className="mb-4 p-4 bg-white rounded-lg shadow dark:bg-gray-800">
+              <h4 className="font-semibold text-lg">{module.title}</h4>
+              <button
+                onClick={() => handleMarkAsComplete(module.id)}
+                className="py-1 px-3 bg-green-600 text-white rounded-lg hover:bg-green-700"
+                disabled={progress[module.id]}
+              >
+                {progress[module.id] ? "Completed" : "Mark as Complete"}
+              </button>
+            </div>
+          ))}
+          <h3 className="text-lg font-semibold mt-6 mb-2">Materials</h3>
+          {materials.map((material) => (
+            <a
+              key={material.id}
+              href={material.file || material.video || material.video_url}
+              className="block text-blue-600 hover:underline mb-1 dark:text-blue-400"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {material.title} ({material.file ? "file" : material.video ? "video" : "video_url"})
+            </a>
+          ))}
+        </div>
+      )}
+
+      {activeTab === "announcements" && (
+        <div>
+          <h2 className="text-2xl font-bold mb-4">Announcements</h2>
+          {announcements.map((ann) => (
+            <div key={ann.id} className="mb-4 p-4 bg-white rounded-lg shadow dark:bg-gray-800">
+              <h3 className="font-semibold">{ann.title}</h3>
+              <p className="text-gray-600 dark:text-gray-400">{ann.content}</p>
+              <small className="text-gray-500">{new Date(ann.announcement.created_at).toLocaleDateString()}</small>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {activeTab === "profile" && (
+        <div>
+          <h2 className="text-2xl font-bold mb-4">Profile</h2>
+          <p>Name: {profile.full_name || "Loading..."}</p>
+          <p>Email: {profile.email || "Loading..."}</p>
+          <img src={profile.avatar || "/docs/images/people/profile-picture-3.jpg"} alt="Avatar" className="w-24 h-24 rounded-full mt-4" />
+        </div>
+      )}
+    </StudentLayout>
   );
 }

@@ -2,13 +2,14 @@
 export default {
   content: [
     "./index.html",
-    "./src//*.{js,ts,jsx,tsx}",
-    "node_modules/flowbite//*.js",
+    "./src/**/*.{js,ts,jsx,tsx}",
+    "node_modules/flowbite/**/*.js", // 👈 Add this
   ],
   theme: {
     extend: {},
   },
   plugins: [
-    require("flowbite/plugin"),
+    require("daisyui"),      // 👈 DaisyUI
+    require("flowbite/plugin") // 👈 Flowbite
   ],
-};
+}

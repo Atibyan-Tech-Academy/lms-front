@@ -1,8 +1,16 @@
+import React from "react";
 import { Navigate } from "react-router-dom";
+import { isAuthenticated, getRole } from "../services/auth";
 
-const PrivateRoute = ({ children }) => {
-  const token = localStorage.getItem("access");
-  return token ? children : <Navigate to="/login" replace />;
-};
+// roleCheck = ["STUDENT"], ["LECTURER"], ["ADMIN"], or undefined (any role)
+export default function PrivateRoute({ children, roleCheck }) {
+  if (!isAuthenticated()) {
+    return <Navigate to="/login" />;
+  }
 
-export default PrivateRoute;
+  if (roleCheck && !roleCheck.includes(getRole())) {
+    return <Navigate to="/login" />;
+  }
+
+  return children;
+}

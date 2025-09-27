@@ -1,25 +1,19 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+// src/App.jsx
+import React from "react";
+import { Routes, Route, Navigate } from "react-router-dom";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
-import Login2 from "./pages/Login2";
 import StudentDashboard from "./pages/StudentDashboard";
 import InstructorDashboard from "./pages/InstructorDashboard";
+import EditProfile from "./pages/EditProfile";
 import AdminDashboard from "./pages/AdminDashboard";
+import PrivateRoute from "./components/PrivateRoute";
+import StudentLayout from "./layouts/StudentLayout";
+import InstructorLayout from "./layouts/InstructorLayout";
+import AdminLayout from "./layouts/AdminLayout";
 
-function App() {
+export default function App() {
   return (
-<<<<<<< Updated upstream
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/login2" element={<Login2 />} />
-        <Route path="/student" element={<StudentDashboard />} />
-        <Route path="/instructor" element={<InstructorDashboard />} />
-        <Route path="/admin" element={<AdminDashboard />} />
-      </Routes>
-    </BrowserRouter>
-=======
     <Routes>
       {/* Public Routes */}
       <Route path="/" element={<Home />} />
@@ -86,8 +80,5 @@ function App() {
         }
       />
     </Routes>
->>>>>>> Stashed changes
   );
 }
-
-export default App;
