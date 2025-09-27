@@ -37,8 +37,9 @@ export default function Login() {
         localStorage.setItem("lecturer_id", user.lecturer_id || "");
         localStorage.setItem("first_name", user.first_name || "");
         localStorage.setItem("last_name", user.last_name || "");
-        localStorage.setItem("avatar", user.picture || "");
-        
+        localStorage.setItem("avatar", user.profile_image || "");
+
+
         const fullName = [user.first_name, user.last_name].filter(Boolean).join(" ");
         localStorage.setItem("full_name", fullName || user.username);
       }
