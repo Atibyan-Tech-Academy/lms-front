@@ -11,6 +11,8 @@ import PrivateRoute from "./components/PrivateRoute";
 import StudentLayout from "./layouts/StudentLayout";
 import InstructorLayout from "./layouts/InstructorLayout";
 import AdminLayout from "./layouts/AdminLayout";
+import MyCourses from "./pages/MyCourses";
+import CreateCourse from "./pages/CreateCourse";
 
 export default function App() {
   return (
@@ -55,6 +57,26 @@ export default function App() {
           <PrivateRoute roleCheck={["LECTURER"]}>
             <InstructorLayout>
               <InstructorDashboard />
+            </InstructorLayout>
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/instructor/my-courses"
+        element={
+          <PrivateRoute roleCheck={["LECTURER"]}>
+            <InstructorLayout>
+              <MyCourses />
+            </InstructorLayout>
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/instructor/create-course"
+        element={
+          <PrivateRoute roleCheck={["LECTURER"]}>
+            <InstructorLayout>
+              <CreateCourse />
             </InstructorLayout>
           </PrivateRoute>
         }
