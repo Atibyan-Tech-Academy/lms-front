@@ -1,8 +1,9 @@
-// src/layouts/DashboardLayout.jsx
+// LMS-FRONT/src/layouts/DashboardLayout.jsx
 import React from "react";
 import DashboardNavbar from "../components/DashboardNavbar";
 import { useAuth } from "../context/AuthContext";
-import { NavLink } from "react-router-dom";
+import { NavLink, Route, Routes } from "react-router-dom"; // Added Routes for rendering
+import ChatBox from "../components/ChatBox"; // Import ChatBox
 
 export default function DashboardLayout({ children }) {
   const { user } = useAuth();
@@ -12,6 +13,7 @@ export default function DashboardLayout({ children }) {
     { name: "Courses", path: "/dashboard/courses" },
     { name: "Profile", path: "/dashboard/profile" },
     { name: "Settings", path: "/dashboard/settings" },
+    { name: "Chat", path: "/dashboard/chat" }, // Add Chat tab
   ];
 
   return (
@@ -51,8 +53,15 @@ export default function DashboardLayout({ children }) {
           ))}
         </div>
 
-        {/* Page Content */}
-        <div className="mt-6">{children}</div>
+        {/* Page Content with Routes */}
+        <div className="mt-6">
+          <Routes>
+            {/* Default content for other tabs */}
+            <Route path="/*" element={children} />
+            {/* Chat route */}
+            <Route path="chat" element={<ChatBox roomId="room1" />} />
+          </Routes>
+        </div>
       </main>
     </div>
   );
