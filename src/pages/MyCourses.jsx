@@ -1,31 +1,45 @@
-// src/pages/MyCourses.jsx
 import React, { useEffect, useState } from "react";
-import { getInstructorCourses, getProfile } from "../services/api";
 import { useNavigate } from "react-router-dom";
+import API from "../services/api"; // Axios instance with auth headers
 
 export default function MyCourses() {
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [userRole, setUserRole] = useState(null); // Track user role
+  const [userRole, setUserRole] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchData = async () => {
+      setLoading(true);
+      setError(null);
       try {
-        // Fetch profile to check if user is an instructor
-        const profileRes = await getProfile();
-        setUserRole(profileRes.data.role); // Adjust based on your API response
+        // 1️⃣ Fetch profile
+        const profileRes = await API.get("editprofile/profile/");
+        const role = profileRes.data.role?.toLowerCase() || "";
+        setUserRole(role);
 
-        // Fetch courses
-        const response = await getInstructorCourses();
-        const coursesData = Array.isArray(response.data)
-          ? response.data
-          : response.data.results || [];
+        // 2️⃣ Fetch courses if role is instructor
+        let coursesData = [];
+        if (role === "instructor") {
+          const coursesRes = await API.get("courses/"); // <-- Use the main courses endpoint
+          // Filter only courses created by this instructor
+          coursesData = coursesRes.data.filter(
+            (course) => course.instructor === profileRes.data.id
+          );
+        }
         setCourses(coursesData);
       } catch (err) {
         console.error("Error fetching courses or profile:", err);
-        setError("Failed to load courses.");
+        if (err.response?.status === 401) {
+          setError("You are not logged in. Please login first.");
+        } else if (err.response?.status === 403) {
+          setError("You do not have permission to view this page.");
+        } else if (err.response?.status === 404) {
+          setError("API endpoint not found.");
+        } else {
+          setError("Failed to load courses.");
+        }
       } finally {
         setLoading(false);
       }

@@ -1,31 +1,31 @@
 // src/services/auth.js
+
+// ---------- TOKEN HELPERS ----------
 export const getAccessToken = () => {
   const token = localStorage.getItem("access");
-  console.log("getAccessToken:", token ? "Token exists" : "No token");
-  return token;
+  return token || null;
 };
 
 export const getRefreshToken = () => {
   const token = localStorage.getItem("refresh");
-  console.log("getRefreshToken:", token ? "Token exists" : "No token");
-  return token;
+  return token || null;
 };
 
 export const getRole = () => {
-  const role = localStorage.getItem("role");
-  console.log("getRole:", role || "No role");
-  return role;
+  return localStorage.getItem("role") || null;
 };
 
-export const isAuthenticated = () => {
-  const isAuth = !!getAccessToken();
-  console.log("isAuthenticated:", isAuth);
-  return isAuth;
+export const isAuthenticated = () => !!getAccessToken();
+
+// ---------- SAVE / LOGOUT ----------
+export const saveTokens = ({ access, refresh, role }) => {
+  if (access) localStorage.setItem("access", access);
+  if (refresh) localStorage.setItem("refresh", refresh);
+  if (role) localStorage.setItem("role", role);
 };
 
 export const logout = () => {
   localStorage.removeItem("access");
   localStorage.removeItem("refresh");
   localStorage.removeItem("role");
-  console.log("Logged out");
 };
