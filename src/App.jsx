@@ -5,6 +5,7 @@ import Home from "./pages/Home";
 import Login from "./pages/Login";
 import StudentDashboard from "./pages/StudentDashboard";
 import InstructorDashboard from "./pages/InstructorDashboard";
+<<<<<<< Updated upstream
 import EditProfile from "./pages/EditProfile";
 import AdminDashboard from "./pages/AdminDashboard";
 import PrivateRoute from "./components/PrivateRoute";
@@ -13,9 +14,30 @@ import InstructorLayout from "./layouts/InstructorLayout";
 import AdminLayout from "./layouts/AdminLayout";
 import MyCourses from "./pages/MyCourses";
 import CreateCourse from "./pages/CreateCourse";
+=======
+import InstructorLayout from "./layouts/InstructorLayout";
+import AdminDashboard from "./pages/AdminDashboard";
+import AdminLayout from "./layouts/AdminLayout";
+import MyCourses from "./pages/MyCourses";
+import CreateCourse from "./pages/CreateCourse";
+import NotePages from "./pages/NotePages"; // ✅ Added NotesPage
+>>>>>>> Stashed changes
 
 export default function App() {
   return (
+<<<<<<< Updated upstream
+=======
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/student" element={<StudentDashboard />} />
+        <Route path="/instructor" element={<InstructorDashboard />} />
+        <Route path="/admin" element={<AdminDashboard />} />
+      </Routes>
+    </BrowserRouter>
+=======
+>>>>>>> Stashed changes
     <Routes>
       {/* Public Routes */}
       <Route path="/" element={<Home />} />

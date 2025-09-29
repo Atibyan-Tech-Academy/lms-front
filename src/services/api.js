@@ -4,6 +4,7 @@ const API = axios.create({
   baseURL: import.meta.env.VITE_API_URL || "http://127.0.0.1:8000/api/",
 });
 
+<<<<<<< Updated upstream
 // 🔐 Attach token unless excluded
 API.interceptors.request.use((config) => {
   const excludeAuth = [
@@ -20,6 +21,13 @@ API.interceptors.request.use((config) => {
     }
   } else {
     console.log("Skipped Authorization header for:", config.url);
+=======
+// Attach token automatically
+API.interceptors.request.use((config) => {
+  const token = localStorage.getItem("access");
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+>>>>>>> Stashed changes
   }
   return config;
 });
