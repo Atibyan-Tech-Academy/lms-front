@@ -22,9 +22,15 @@ const DashboardNavbar = () => {
     switch (role) {
       case "STUDENT":
         return [
+<<<<<<< Updated upstream
           { name: "Courses", href: "#courses" },
           { name: "Announcements", href: "#announcements" },
           { name: "Profile", href: "#profile" },
+=======
+          { name: "Courses", to: "/student/dashboard#courses" },
+          { name: "Announcements", to: "/student/dashboard#announcements" },
+          { name: "Notes", to: "/student/notes" }, // ✅ fixed
+>>>>>>> Stashed changes
         ];
       case "LECTURER":
         return [
@@ -97,4 +103,9 @@ const DashboardNavbar = () => {
   );
 };
 
+<<<<<<< Updated upstream
 export default DashboardNavbar;
+=======
+export default DashboardNavbar;
+
+>>>>>>> Stashed changes

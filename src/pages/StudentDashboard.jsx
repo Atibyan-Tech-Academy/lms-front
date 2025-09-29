@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream
 import { useEffect, useState } from "react";
 import API from "../services/api";
 <<<<<<< Updated upstream
@@ -20,8 +21,20 @@ export default function StudentDashboard() {
           <p><strong>Email:</strong> {profile.email}</p>
           <p><strong>Student ID:</strong> {profile.student_id}</p>
 =======
+=======
+// src/pages/StudentDashboard.jsx
+import React, { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+import {
+  getEnrolledCourses,
+  getCourseModules,
+  getCourseMaterials,
+  getCourseProgress,
+  markAsComplete,
+} from "../services/api";
+>>>>>>> Stashed changes
 import { isAuthenticated, getRole } from "../services/auth";
-import StudentLayout from "../layouts/StudentLayout";
+// ❌ Remove StudentLayout import
 
 export default function StudentDashboard() {
   const [courses, setCourses] = useState([]);
@@ -53,6 +66,7 @@ export default function StudentDashboard() {
       .catch((err) => setError("Failed to load announcements."));
   }, [navigate]);
 
+<<<<<<< Updated upstream
   useEffect(() => {
     if (selectedCourse) {
       API.get(`courses/${selectedCourse.id}/modules/`)
@@ -64,12 +78,63 @@ export default function StudentDashboard() {
       API.get(`courses/${selectedCourse.id}/progress/`)
         .then((res) => setProgress(res.data.reduce((acc, p) => ({ ...acc, [p.module]: p.completed }), {})))
         .catch((err) => setError("Failed to load progress."));
+=======
+  const fetchInitialData = async () => {
+    try {
+      const [coursesRes, profileRes, announcementsRes] = await Promise.all([
+        getEnrolledCourses(),
+        // ✅ Import API before using it
+        // import API at the top: `import API from "../services/api";`
+        API.get("accounts/profile/"),
+        API.get("announcements/"),
+      ]);
+      setCourses(coursesRes.data);
+      setProfile(profileRes.data);
+      setAnnouncements(announcementsRes.data);
+    } catch (err) {
+      setError(
+        "Failed to load data: " +
+          (err.response?.data?.detail || err.message)
+      );
+    }
+  };
+
+  useEffect(() => {
+    if (selectedCourse) {
+      Promise.all([
+        getCourseModules(selectedCourse.id),
+        getCourseMaterials(selectedCourse.id),
+        getCourseProgress(selectedCourse.id),
+      ])
+        .then(([modulesRes, materialsRes, progressRes]) => {
+          setModules(modulesRes.data);
+          setMaterials(materialsRes.data);
+          setProgress(
+            modulesRes.data.reduce(
+              (acc, m) => ({
+                ...acc,
+                [m.id]:
+                  progressRes.data.find((p) => p.module === m.id)
+                    ?.completed || false,
+              }),
+              {}
+            )
+          );
+        })
+        .catch((err) =>
+          setError("Failed to load course details: " + err.message)
+        );
+>>>>>>> Stashed changes
     }
   }, [selectedCourse]);
 
   const markAsComplete = async (moduleId) => {
     try {
+<<<<<<< Updated upstream
       await API.post("progress/", { module_id: moduleId, completed: true });
+=======
+      await markAsComplete(moduleId);
+>>>>>>> Stashed changes
       setProgress((prev) => ({ ...prev, [moduleId]: true }));
     } catch (err) {
       setError("Failed to update progress.");
@@ -77,7 +142,7 @@ export default function StudentDashboard() {
   };
 
   return (
-    <StudentLayout>
+    <div>
       {error && <p className="text-red-500 mb-4">{error}</p>}
 
       {activeTab === "courses" && !selectedCourse && (
@@ -91,11 +156,19 @@ export default function StudentDashboard() {
                 onClick={() => setSelectedCourse(course)}
               >
                 <h3 className="text-xl font-semibold">{course.title}</h3>
-                <p className="text-gray-600 dark:text-gray-400">{course.description}</p>
+                <p className="text-gray-600 dark:text-gray-400">
+                  {course.description}
+                </p>
                 <div className="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
                   <div
                     className="bg-blue-600 h-2.5 rounded-full"
-                    style={{ width: `${Object.values(progress).filter(Boolean).length / modules.length * 100 || 0}%` }}
+                    style={{
+                      width: `${
+                        (Object.values(progress).filter(Boolean).length /
+                          modules.length) *
+                          100 || 0
+                      }%`,
+                    }}
                   ></div>
                 </div>
               </div>
@@ -121,7 +194,10 @@ export default function StudentDashboard() {
           <h2 className="text-2xl font-bold mb-4">{selectedCourse.title}</h2>
           <h3 className="text-lg font-semibold mb-2">Modules</h3>
           {modules.map((module) => (
-            <div key={module.id} className="mb-4 p-4 bg-white rounded-lg shadow dark:bg-gray-800">
+            <div
+              key={module.id}
+              className="mb-4 p-4 bg-white rounded-lg shadow dark:bg-gray-800"
+            >
               <h4 className="font-semibold text-lg">{module.title}</h4>
               <button
                 onClick={() => markAsComplete(module.id)}
@@ -141,7 +217,17 @@ export default function StudentDashboard() {
               target="_blank"
               rel="noopener noreferrer"
             >
+<<<<<<< Updated upstream
               {material.title} ({material.file_type || "file"})
+=======
+              {material.title} (
+              {material.file
+                ? "file"
+                : material.video
+                ? "video"
+                : "video_url"}
+              )
+>>>>>>> Stashed changes
             </a>
           ))}
         </div>
@@ -151,10 +237,19 @@ export default function StudentDashboard() {
         <div>
           <h2 className="text-2xl font-bold mb-4">Announcements</h2>
           {announcements.map((ann) => (
-            <div key={ann.id} className="mb-4 p-4 bg-white rounded-lg shadow dark:bg-gray-800">
+            <div
+              key={ann.id}
+              className="mb-4 p-4 bg-white rounded-lg shadow dark:bg-gray-800"
+            >
               <h3 className="font-semibold">{ann.title}</h3>
               <p className="text-gray-600 dark:text-gray-400">{ann.content}</p>
+<<<<<<< Updated upstream
               <small className="text-gray-500">{new Date(ann.created_at).toLocaleDateString()}</small>
+=======
+              <small className="text-gray-500">
+                {new Date(ann.created_at).toLocaleDateString()}
+              </small>
+>>>>>>> Stashed changes
             </div>
           ))}
         </div>
@@ -165,10 +260,21 @@ export default function StudentDashboard() {
           <h2 className="text-2xl font-bold mb-4">Profile</h2>
           <p>Name: {profile.display_name || "Loading..."}</p>
           <p>Email: {profile.email || "Loading..."}</p>
-          <img src={profile.avatar || "/docs/images/people/profile-picture-3.jpg"} alt="Avatar" className="w-24 h-24 rounded-full mt-4" />
+          <img
+            src={
+              profile.avatar ||
+              "/docs/images/people/profile-picture-3.jpg"
+            }
+            alt="Avatar"
+            className="w-24 h-24 rounded-full mt-4"
+          />
         </div>
       )}
+<<<<<<< Updated upstream
     </StudentLayout>
+>>>>>>> Stashed changes
+=======
+    </div>
 >>>>>>> Stashed changes
   );
 }

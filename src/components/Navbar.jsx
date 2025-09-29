@@ -7,6 +7,7 @@ import logo from "../assets/aoi-portal.png";
 import { Link, useNavigate } from "react-router-dom";
 >>>>>>> Stashed changes
 
+
 const Navbar = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const navigate = useNavigate();

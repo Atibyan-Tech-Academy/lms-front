@@ -5,7 +5,14 @@ import StudentDashboard from "./pages/StudentDashboard";
 import StudentLayout from "./layouts/StudentLayout";
 import InstructorDashboard from "./pages/InstructorDashboard";
 import InstructorLayout from "./layouts/InstructorLayout";
+<<<<<<< Updated upstream
 import AdminDashboard from "./pages/AdminDashboard";
+=======
+import AdminLayout from "./layouts/AdminLayout";
+import MyCourses from "./pages/MyCourses";
+import CreateCourse from "./pages/CreateCourse";
+import NotePages from "./pages/NotePages"; // ✅ Added NotesPage
+>>>>>>> Stashed changes
 
 function App() {
   return (
@@ -35,7 +42,31 @@ function App() {
         path="/student"
         element={
           <PrivateRoute roleCheck={["STUDENT"]}>
+<<<<<<< Updated upstream
             <StudentDashboard />
+=======
+            <Navigate to="/student/dashboard" />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/student/dashboard"
+        element={
+          <PrivateRoute roleCheck={["STUDENT"]}>
+            <StudentLayout>
+              <StudentDashboard />
+            </StudentLayout>
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/student/notes"
+        element={
+          <PrivateRoute roleCheck={["STUDENT"]}>
+            <StudentLayout>
+              <NotePages /> {/* ✅ Notes Page route */}
+            </StudentLayout>
+>>>>>>> Stashed changes
           </PrivateRoute>
         }
       />
