@@ -11,35 +11,58 @@ import PrivateRoute from "./components/PrivateRoute";
 import StudentLayout from "./layouts/StudentLayout";
 import InstructorLayout from "./layouts/InstructorLayout";
 import AdminLayout from "./layouts/AdminLayout";
+<<<<<<< Updated upstream
+=======
+import MyCourses from "./pages/MyCourses";
+import CreateCourse from "./pages/CreateCourse";
+import AIChatWidget from "./components/AIChatWidget";
+import MessagesPage from "./pages/MessagesPage";   // ✅ New
+>>>>>>> Stashed changes
 
 export default function App() {
+  // 🔑 check role + login state from localStorage
+  const role = localStorage.getItem("role");
+  const isLoggedIn = !!localStorage.getItem("access");
+
   return (
-    <Routes>
-      {/* Public Routes */}
-      <Route path="/" element={<Home />} />
-      <Route path="/login" element={<Login />} />
-      <Route path="/editprofile" element={<EditProfile />} />
+    <div className="relative min-h-screen">
+      <Routes>
+        {/* Public Routes */}
+        <Route path="/" element={<Home />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/editprofile" element={<EditProfile />} />
 
-      {/* Student Routes */}
-      <Route
-        path="/student"
-        element={
-          <PrivateRoute roleCheck={["STUDENT"]}>
-            <Navigate to="/student/dashboard" />
-          </PrivateRoute>
-        }
-      />
-      <Route
-        path="/student/dashboard"
-        element={
-          <PrivateRoute roleCheck={["STUDENT"]}>
-            <StudentLayout>
-              
-            </StudentLayout>
-          </PrivateRoute>
-        }
-      />
+        {/* Student Routes */}
+        <Route
+          path="/student"
+          element={
+            <PrivateRoute roleCheck={["STUDENT"]}>
+              <Navigate to="/student/dashboard" />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/student/dashboard"
+          element={
+            <PrivateRoute roleCheck={["STUDENT"]}>
+              <StudentLayout>
+                <StudentDashboard />
+              </StudentLayout>
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/student/messages"
+          element={
+            <PrivateRoute roleCheck={["STUDENT"]}>
+              <StudentLayout>
+                <MessagesPage />
+              </StudentLayout>
+            </PrivateRoute>
+          }
+        />
 
+<<<<<<< Updated upstream
       {/* Instructor Routes */}
       <Route
         path="/instructor"
@@ -59,26 +82,94 @@ export default function App() {
           </PrivateRoute>
         }
       />
+=======
+        {/* Instructor Routes */}
+        <Route
+          path="/instructor"
+          element={
+            <PrivateRoute roleCheck={["LECTURER"]}>
+              <Navigate to="/instructor/dashboard" />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/instructor/dashboard"
+          element={
+            <PrivateRoute roleCheck={["LECTURER"]}>
+              <InstructorLayout>
+                <InstructorDashboard />
+              </InstructorLayout>
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/instructor/my-courses"
+          element={
+            <PrivateRoute roleCheck={["LECTURER"]}>
+              <InstructorLayout>
+                <MyCourses />
+              </InstructorLayout>
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/instructor/create-course"
+          element={
+            <PrivateRoute roleCheck={["LECTURER"]}>
+              <InstructorLayout>
+                <CreateCourse />
+              </InstructorLayout>
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/instructor/messages"
+          element={
+            <PrivateRoute roleCheck={["LECTURER"]}>
+              <InstructorLayout>
+                <MessagesPage />
+              </InstructorLayout>
+            </PrivateRoute>
+          }
+        />
+>>>>>>> Stashed changes
 
-      {/* Admin Routes */}
-      <Route
-        path="/admin"
-        element={
-          <PrivateRoute roleCheck={["ADMIN"]}>
-            <Navigate to="/admin/dashboard" />
-          </PrivateRoute>
-        }
-      />
-      <Route
-        path="/admin/dashboard"
-        element={
-          <PrivateRoute roleCheck={["ADMIN"]}>
-            <AdminLayout>
-              <AdminDashboard />
-            </AdminLayout>
-          </PrivateRoute>
-        }
-      />
-    </Routes>
+        {/* Admin Routes */}
+        <Route
+          path="/admin"
+          element={
+            <PrivateRoute roleCheck={["ADMIN"]}>
+              <Navigate to="/admin/dashboard" />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/admin/dashboard"
+          element={
+            <PrivateRoute roleCheck={["ADMIN"]}>
+              <AdminLayout>
+                <AdminDashboard />
+              </AdminLayout>
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/admin/messages"
+          element={
+            <PrivateRoute roleCheck={["ADMIN"]}>
+              <AdminLayout>
+                <MessagesPage />
+              </AdminLayout>
+            </PrivateRoute>
+          }
+        />
+      </Routes>
+
+      {/* ✅ AI Chat Widget (bottom-right) */}
+      {isLoggedIn &&
+        (role === "STUDENT" || role === "LECTURER" || role === "ADMIN") && (
+          <AIChatWidget />
+        )}
+    </div>
   );
 }

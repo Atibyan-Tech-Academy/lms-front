@@ -4,6 +4,7 @@ import DashboardNavbar from "../components/DashboardNavbar";
 import { useAuth } from "../context/AuthContext";
 import { NavLink, Route, Routes } from "react-router-dom"; // Added Routes for rendering
 import ChatBox from "../components/ChatBox"; // Import ChatBox
+import MessagingPage from "./components/MessagingPage";
 
 export default function DashboardLayout({ children }) {
   const { user } = useAuth();
@@ -60,6 +61,7 @@ export default function DashboardLayout({ children }) {
             <Route path="/*" element={children} />
             {/* Chat route */}
             <Route path="chat" element={<ChatBox roomId="room1" />} />
+            <Route path="/messaging" element={<MessagingPage currentUserId={user.id} />} />
           </Routes>
         </div>
       </main>

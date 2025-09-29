@@ -51,24 +51,28 @@ const DashboardNavbar = () => {
 
   const getMenuItems = () => {
     switch (role) {
-      case "STUDENT":
-        return [
-          { name: "Courses", to: "/student/dashboard#courses" },
-          { name: "Announcements", to: "/student/dashboard#announcements" },
-          { name: "Notes", to: "/student/dashboard#notes" },
-        ];
-      case "LECTURER":
-        return [
-          { name: "My Courses", to: "/instructor/my-courses" },
-          { name: "Announcements", to: "/instructor/dashboard#announcements" },
-          { name: "Profile", to: "/editprofile" },
-        ];
-      case "ADMIN":
-        return [
-          { name: "Users", to: "/admin/dashboard#users" },
-          { name: "Courses", to: "/admin/dashboard#courses" },
-          { name: "Announcements", to: "/admin/dashboard#announcements" },
-        ];
+     case "STUDENT":
+  return [
+    { name: "Courses", to: "/student/dashboard#courses" },
+    { name: "Announcements", to: "/student/dashboard#announcements" },
+    { name: "Notes", to: "/student/dashboard#notes" },
+    { name: "Messages", to: "/student/messages" },
+  ];
+case "LECTURER":
+  return [
+    { name: "My Courses", to: "/instructor/my-courses" },
+    { name: "Announcements", to: "/instructor/dashboard#announcements" },
+    { name: "Profile", to: "/editprofile" },
+    { name: "Messages", to: "/instructor/messages" },
+  ];
+case "ADMIN":
+  return [
+    { name: "Users", to: "/admin/dashboard#users" },
+    { name: "Courses", to: "/admin/dashboard#courses" },
+    { name: "Announcements", to: "/admin/dashboard#announcements" },
+    { name: "Messages", to: "/admin/messages" },
+  ];
+
       default:
         return [];
     }
