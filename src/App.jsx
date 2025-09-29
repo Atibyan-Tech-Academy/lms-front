@@ -36,7 +36,7 @@ export default function App() {
         element={
           <PrivateRoute roleCheck={["STUDENT"]}>
             <StudentLayout>
-              <StudentDashboard />
+              
             </StudentLayout>
           </PrivateRoute>
         }
