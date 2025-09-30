@@ -1,7 +1,7 @@
 // src/pages/NotePages.jsx
 import React, { useEffect, useState } from "react";
 import { getNotes, createNote, updateNote, deleteNote, partialUpdateNote } from "../services/api";
-import NoteCard from "../components/NoteCard";
+import NoteCard from "./NoteCard";
 
 export default function NotePages() {
   const [notes, setNotes] = useState([]);

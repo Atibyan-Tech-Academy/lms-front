@@ -1,7 +1,9 @@
+// src/layouts/StudentLayout.jsx
 import React from "react";
+import { Outlet } from "react-router-dom";
 import DashboardNavbar from "../components/DashboardNavbar";
 
-export default function StudentLayout({ children }) {
+export default function StudentLayout() {
   return (
     <div className="flex flex-col min-h-screen">
       <DashboardNavbar />
@@ -16,7 +18,9 @@ export default function StudentLayout({ children }) {
       >
         <h1 className="text-2xl font-bold">Student Dashboard</h1>
       </div>
-      <main className="flex-1 overflow-y-auto p-6 bg-gray-50 dark:bg-gray-800">{children}</main>
+      <main className="flex-1 overflow-y-auto p-6 bg-gray-50 dark:bg-gray-800">
+        <Outlet /> {/* ✅ renders child routes like dashboard, courses, notes */}
+      </main>
     </div>
   );
 }

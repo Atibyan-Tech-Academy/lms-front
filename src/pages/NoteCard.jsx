@@ -1,12 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Rnd } from "react-rnd";
 
-// Draggable / resizable sticky note
-// Props:
-// - note: note object from API (expects pos_x, pos_y, width, height, color, title, content, pinned, z_index)
-// - onChange: function(patch) -> called with partial fields to PATCH the note on the server
-// - onDelete: function() -> called when delete is requested
-
 export default function NoteCard({ note, onChange, onDelete }) {
   const [editing, setEditing] = useState(false);
   const [local, setLocal] = useState({
@@ -19,16 +13,18 @@ export default function NoteCard({ note, onChange, onDelete }) {
   const [size, setSize] = useState({ width: note.width || 260, height: note.height || 180 });
   const [zIndex, setZIndex] = useState(note.z_index || 0);
 
-  // keep local state in sync when parent note changes
   useEffect(() => {
-    setLocal({ title: note.title || "", content: note.content || "", color: note.color || "#FFF9C4" });
+    setLocal({
+      title: note.title || "",
+      content: note.content || "",
+      color: note.color || "#FFF9C4",
+    });
     setPosition({ x: note.pos_x || 0, y: note.pos_y || 0 });
     setSize({ width: note.width || 260, height: note.height || 180 });
     setZIndex(note.z_index || 0);
   }, [note]);
 
-  const save = async () => {
-    // push the edited fields back up
+  const save = () => {
     onChange({ title: local.title, content: local.content, color: local.color });
     setEditing(false);
   };
@@ -51,7 +47,6 @@ export default function NoteCard({ note, onChange, onDelete }) {
   };
 
   const bringToFront = () => {
-    // quick unique-ish z-index — you can implement a global z-index manager if you prefer
     const newZ = Date.now() % 1000000;
     setZIndex(newZ);
     onChange({ z_index: newZ });
@@ -74,55 +69,55 @@ export default function NoteCard({ note, onChange, onDelete }) {
         className="relative h-full w-full p-3 rounded shadow"
         style={{ backgroundColor: local.color }}
       >
-        <div className="flex items-start justify-between gap-2">
+        {/* Title */}
+        <input
+          value={local.title}
+          onChange={(e) => setLocal((p) => ({ ...p, title: e.target.value }))}
+          onBlur={save}
+          placeholder="Title"
+          className="bg-transparent font-semibold text-lg focus:outline-none w-full"
+        />
+
+        {/* Toolbar inside card */}
+        <div className="flex items-center justify-start gap-2 mt-2">
           <input
-            value={local.title}
-            onChange={(e) => setLocal((p) => ({ ...p, title: e.target.value }))}
-            onBlur={save}
-            placeholder="Title"
-            className="bg-transparent font-semibold text-lg focus:outline-none flex-1"
+            type="color"
+            value={local.color}
+            onChange={(e) => {
+              const c = e.target.value;
+              setLocal((p) => ({ ...p, color: c }));
+              onChange({ color: c });
+            }}
+            title="Choose color"
+            className="w-6 h-6 cursor-pointer rounded border border-gray-300 p-0"
           />
 
-          <div className="flex items-center gap-2 ml-2">
-            <input
-              type="color"
-              value={local.color}
-              onChange={(e) => {
-                const c = e.target.value;
-                setLocal((p) => ({ ...p, color: c }));
-                // update color immediately
-                onChange({ color: c });
-              }}
-              title="Choose color"
-              className="w-8 h-8 p-0 border-0"
-            />
+          <button
+            onClick={() => onChange({ pinned: !note.pinned })}
+            className="p-1 rounded hover:bg-black/10"
+            title={note.pinned ? "Unpin" : "Pin"}
+          >
+            {note.pinned ? "📌" : "📍"}
+          </button>
 
-            <button
-              onClick={() => onChange({ pinned: !note.pinned })}
-              className="text-sm px-2 py-1 rounded hover:bg-white/30"
-              title={note.pinned ? "Unpin" : "Pin"}
-            >
-              {note.pinned ? "📌" : "📍"}
-            </button>
+          <button
+            onClick={() => setEditing((s) => !s)}
+            className="p-1 rounded hover:bg-black/10"
+            title="Edit"
+          >
+            ✏️
+          </button>
 
-            <button
-              onClick={() => setEditing((s) => !s)}
-              className="text-sm px-2 py-1 rounded hover:bg-white/30"
-              title="Edit"
-            >
-              ✏️
-            </button>
-
-            <button
-              onClick={onDelete}
-              className="text-sm px-2 py-1 rounded text-red-600 hover:bg-white/30"
-              title="Delete"
-            >
-              🗑️
-            </button>
-          </div>
+          <button
+            onClick={onDelete}
+            className="p-1 rounded text-red-600 hover:bg-red-100"
+            title="Delete"
+          >
+            🗑️
+          </button>
         </div>
 
+        {/* Content */}
         <div className="mt-2">
           {editing ? (
             <textarea
@@ -136,16 +131,17 @@ export default function NoteCard({ note, onChange, onDelete }) {
           )}
         </div>
 
-        <div className="flex justify-end mt-2 gap-2">
-          {editing && (
+        {/* Save button when editing */}
+        {editing && (
+          <div className="flex justify-end mt-2">
             <button
               onClick={save}
-              className="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700"
+              className="bg-green-700 text-white px-3 py-1 rounded hover:bg-blue-700"
             >
               Save
             </button>
-          )}
-        </div>
+          </div>
+        )}
       </div>
     </Rnd>
   );

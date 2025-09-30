@@ -55,7 +55,7 @@ const DashboardNavbar = () => {
         return [
           { name: "Courses", to: "/student/dashboard#courses" },
           { name: "Announcements", to: "/student/dashboard#announcements" },
-          { name: "Notes", to: "/student/dashboard#notes" },
+          { name: "Notes", to: "/student/notes" },
         ];
       case "LECTURER":
         return [

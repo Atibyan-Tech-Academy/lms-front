@@ -1,4 +1,5 @@
 // src/services/auth.js
+
 export const getAccessToken = () => {
   const token = localStorage.getItem("access");
   console.log("getAccessToken:", token ? "Token exists" : "No token");
@@ -21,6 +22,13 @@ export const isAuthenticated = () => {
   const isAuth = !!getAccessToken();
   console.log("isAuthenticated:", isAuth);
   return isAuth;
+};
+
+export const saveTokens = ({ access, refresh, role }) => {
+  if (access) localStorage.setItem("access", access);
+  if (refresh) localStorage.setItem("refresh", refresh);
+  if (role) localStorage.setItem("role", role);
+  console.log("Tokens saved:", { access, refresh, role });
 };
 
 export const logout = () => {
