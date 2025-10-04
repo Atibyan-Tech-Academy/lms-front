@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { login as apiLogin, getCsrfToken } from "../services/api";
 import logoLight from "../assets/Aoi2-light.png";
-import { useAuth } from "../context/AuthContext"; // Import useAuth
+import { useAuth } from "../context/AuthContext";
 
 export default function Login() {
   const [identifier, setIdentifier] = useState("");
@@ -11,7 +11,7 @@ export default function Login() {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const { login } = useAuth(); // Access login function from AuthContext
+  const { login } = useAuth(); // Use AuthContext login
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -21,23 +21,17 @@ export default function Login() {
     try {
       console.log("Sending login payload:", { identifier, password });
 
-      // Attempt to fetch CSRF token
-      let csrfToken = null;
-      try {
-        csrfToken = await getCsrfToken();
-      } catch (csrfError) {
-        console.warn("Failed to fetch CSRF token:", csrfError.response?.data || csrfError.message);
-        // Proceed without CSRF token as a fallback
+      // Fetch CSRF token
+      let csrfToken = await getCsrfToken();
+      if (!csrfToken) {
+        console.warn("No CSRF token fetched, proceeding without it.");
       }
 
       const response = await apiLogin({ identifier, password }, csrfToken);
-
       const { access, refresh, role, user } = response.data;
 
-      // Update AuthContext state
-      login(user, access); // This updates the AuthContext state immediately
-
-      // Store in localStorage (for persistence and AuthContext sync)
+      // Update AuthContext and localStorage
+      login(user, access); // Sync with AuthContext
       localStorage.setItem("access", access);
       localStorage.setItem("refresh", refresh);
       localStorage.setItem("role", role);
@@ -81,10 +75,10 @@ export default function Login() {
       } else {
         setError(
           "Login failed: " +
-            (err.response?.data?.detail ||
-              err.response?.data?.non_field_errors?.[0] ||
-              JSON.stringify(err.response?.data) ||
-              err.message)
+          (err.response?.data?.detail ||
+            err.response?.data?.non_field_errors?.[0] ||
+            JSON.stringify(err.response?.data) ||
+            err.message)
         );
       }
     } finally {
@@ -95,29 +89,29 @@ export default function Login() {
   return (
     <div className="flex h-screen m-3">
       {/* Left side form */}
-      <div className="w-1/2 flex flex-col justify-center px-16 bg-gray-50">
-        <h2 className="text-3xl font-bold mb-6">Welcome Back</h2>
-        {error && <p className="text-red-500 text-sm mb-3">{error}</p>}
+      <div className="w-1/2 flex flex-col justify-center px-16 bg-gray-50 dark:bg-gray-800">
+        <h2 className="text-3xl font-bold mb-6 text-gray-800 dark:text-gray-200">Welcome Back</h2>
+        {error && <p className="text-red-500 dark:text-red-400 text-sm mb-3">{error}</p>}
         <div className="space-y-5">
           <div>
-            <label className="block text-sm mb-1">Email / Username / Student ID / Lecturer ID</label>
+            <label className="block text-sm mb-1 text-gray-700 dark:text-gray-300">Email / Username / Student ID / Lecturer ID</label>
             <input
               type="text"
               value={identifier}
               onChange={(e) => setIdentifier(e.target.value)}
               placeholder="Enter email or ID"
-              className="mb-3 w-full p-3 border rounded-lg focus:ring focus:ring-blue-500"
+              className="mb-3 w-full p-3 border rounded-lg focus:ring focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
               required
             />
           </div>
           <div>
-            <label className="block text-sm mb-1">Password</label>
+            <label className="block text-sm mb-1 text-gray-700 dark:text-gray-300">Password</label>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Enter password"
-              className="w-full p-3 border rounded-lg focus:ring focus:ring-blue-500"
+              className="w-full p-3 border rounded-lg focus:ring focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
               required
             />
           </div>
@@ -125,7 +119,7 @@ export default function Login() {
             type="button"
             onClick={handleSubmit}
             disabled={loading}
-            className="w-full py-3 mt-3 bg-green-800 text-white rounded-lg hover:bg-green-500 transition"
+            className="w-full py-3 mt-3 bg-green-800 text-white rounded-lg hover:bg-green-700 transition dark:bg-green-900 dark:hover:bg-green-800"
           >
             {loading ? "Logging in..." : "Login"}
           </button>

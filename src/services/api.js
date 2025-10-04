@@ -14,17 +14,15 @@ const API = axios.create({
 // ---------- REQUEST INTERCEPTOR ----------
 API.interceptors.request.use((config) => {
   const token = getAccessToken();
-  // Only add Authorization header for non-public endpoints
-  const publicEndpoints = ["public-announcements", "accounts/get-csrf-token"];
+  // Define public endpoints that don't require authentication
+  const publicEndpoints = ["public-announcements", "accounts/get-csrf-token", "accounts/login"];
   if (token && !publicEndpoints.some((endpoint) => config.url.includes(endpoint))) {
     config.headers["Authorization"] = `Bearer ${token}`;
   }
-
   // Ensure URL ends with slash if not absolute
   if (config.url && !config.url.startsWith("http") && !config.url.endsWith("/")) {
     config.url += "/";
   }
-
   return config;
 });
 
@@ -39,7 +37,7 @@ API.interceptors.response.use(
       console.log("401 detected, attempting refresh for:", originalRequest.url);
       const refreshToken = getRefreshToken();
 
-      if (refreshToken) {
+      if (refreshToken && !originalRequest.url.includes("accounts/login")) {
         try {
           const res = await API.post("accounts/refresh/", { refresh: refreshToken });
           const newAccess = res.data.access;
@@ -48,14 +46,13 @@ API.interceptors.response.use(
           return API(originalRequest);
         } catch (err) {
           console.error("Refresh token failed for", originalRequest.url, err);
-          // Only logout if the error indicates a permanent auth failure
           if (err.response?.status === 401) {
             logout();
           }
         }
-      } else {
+      } else if (!refreshToken && !originalRequest.url.includes("accounts/login")) {
         console.log("No refresh token, logging out for:", originalRequest.url);
-        logout(); // Logout only if no refresh token exists
+        logout(); // Logout only if not a login attempt and no refresh token
       }
     } else if (error.response?.status === 500) {
       console.error("Server error (500) for:", originalRequest.url, error.response.data);
@@ -80,11 +77,7 @@ export const getCsrfToken = async () => {
 export const login = async ({ identifier, password }, csrfToken) => {
   try {
     const headers = csrfToken ? { "X-CSRFToken": csrfToken } : {};
-    const res = await API.post(
-      "accounts/login/",
-      { identifier, password },
-      { headers }
-    );
+    const res = await API.post("accounts/login/", { identifier, password }, { headers });
     saveTokens({
       access: res.data.access,
       refresh: res.data.refresh,

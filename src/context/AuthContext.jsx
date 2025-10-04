@@ -1,54 +1,47 @@
 // src/context/AuthContext.jsx
-import React, { createContext, useContext, useState, useEffect } from "react";
-import { getProfile } from "../services/api"; // Adjust path if necessary (e.g., "./services/api")
+import React, { createContext, useState, useEffect, useContext } from "react";
+import { getProfile, login as apiLogin, getCsrfToken } from "../services/api";
 
 const AuthContext = createContext();
 
-export function AuthProvider({ children }) {
-  const [user, setUser] = useState(JSON.parse(localStorage.getItem("user")) || null);
-  const [token, setToken] = useState(localStorage.getItem("access") || null);
+export const AuthProvider = ({ children }) => {
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const syncUserData = async () => {
-      if (token) {
-        try {
-          const response = await getProfile();
-          setUser(response.data || user);
-        } catch (error) {
-          console.warn("Failed to fetch profile data:", error);
-        }
-      }
-      localStorage.setItem("user", JSON.stringify(user));
-      localStorage.setItem("access", token);
-    };
     syncUserData();
-  }, [user, token]);
+  }, []);
 
-  const login = (userData, accessToken) => {
-    setUser(userData);
-    setToken(accessToken);
+  const syncUserData = async () => {
+    try {
+      const response = await getProfile();
+      setUser(response.data);
+    } catch (error) {
+      console.error("Failed to fetch profile data:", error);
+      setUser(null); // Clear user on 401 or other errors
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const logout = () => {
+  const login = async (userData, accessToken) => {
+    setUser(userData); // Update user state immediately
+    localStorage.setItem("access", accessToken); // Sync with localStorage
+    await syncUserData(); // Ensure profile is fetched
+  };
+
+  const handleLogout = () => {
     setUser(null);
-    setToken(null);
-    localStorage.clear();
+    logout();
   };
 
-  const value = {
-    user,
-    token,
-    login,
-    logout,
-  };
-
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-}
-
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error("useAuth must be used within an AuthProvider");
-  }
-  return context;
+  return (
+    <AuthContext.Provider value={{ user, loading, login, handleLogout }}>
+      {children}
+    </AuthContext.Provider>
+  );
 };
+
+export const useAuth = () => useContext(AuthContext);
+
+export default AuthContext;
