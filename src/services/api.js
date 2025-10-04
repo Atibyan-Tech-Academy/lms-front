@@ -4,40 +4,50 @@ import { getAccessToken, getRefreshToken, saveTokens, logout } from "./auth";
 
 // ---------- BASE CONFIG ----------
 const API = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "http://127.0.0.1:8000/api/", // Ensure this matches your Django server
+  baseURL: import.meta.env.VITE_API_URL || "http://127.0.0.1:8000/api/",
   withCredentials: true,
   headers: {
     "Content-Type": "application/json",
   },
 });
 
+// ---------- LIST OF PUBLIC ENDPOINTS ----------
+const PUBLIC_ENDPOINTS = [
+  "accounts/login",
+  "accounts/get-csrf-token",
+  "public-announcements",
+  "editprofile/profile", // treat profile fetch as public for guests
+];
+
 // ---------- REQUEST INTERCEPTOR ----------
 API.interceptors.request.use((config) => {
   const token = getAccessToken();
-  // Define public endpoints that don't require authentication
-  const publicEndpoints = ["public-announcements", "accounts/get-csrf-token", "accounts/login"];
-  if (token && !publicEndpoints.some((endpoint) => config.url.includes(endpoint))) {
+
+  if (token && !PUBLIC_ENDPOINTS.some((endpoint) => config.url.includes(endpoint))) {
     config.headers["Authorization"] = `Bearer ${token}`;
   }
-  // Ensure URL ends with slash if not absolute
+
+  // Ensure trailing slash for relative URLs
   if (config.url && !config.url.startsWith("http") && !config.url.endsWith("/")) {
     config.url += "/";
   }
+
   return config;
 });
 
-// ---------- RESPONSE INTERCEPTOR (AUTO REFRESH) ----------
+// ---------- RESPONSE INTERCEPTOR ----------
 API.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
 
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    const isPublic = PUBLIC_ENDPOINTS.some((endpoint) => originalRequest.url.includes(endpoint));
+
+    if (error.response?.status === 401 && !originalRequest._retry && !isPublic) {
       originalRequest._retry = true;
-      console.log("401 detected, attempting refresh for:", originalRequest.url);
       const refreshToken = getRefreshToken();
 
-      if (refreshToken && !originalRequest.url.includes("accounts/login")) {
+      if (refreshToken) {
         try {
           const res = await API.post("accounts/refresh/", { refresh: refreshToken });
           const newAccess = res.data.access;
@@ -45,20 +55,16 @@ API.interceptors.response.use(
           originalRequest.headers["Authorization"] = `Bearer ${newAccess}`;
           return API(originalRequest);
         } catch (err) {
-          console.error("Refresh token failed for", originalRequest.url, err);
-          if (err.response?.status === 401) {
-            logout();
-          }
+          console.error("Refresh failed:", err);
+          if (err.response?.status === 401) logout();
         }
-      } else if (!refreshToken && !originalRequest.url.includes("accounts/login")) {
+      } else {
         console.log("No refresh token, logging out for:", originalRequest.url);
-        logout(); // Logout only if not a login attempt and no refresh token
+        logout();
       }
-    } else if (error.response?.status === 500) {
-      console.error("Server error (500) for:", originalRequest.url, error.response.data);
-      return Promise.reject(new Error(`Server error (500): ${error.response.data.detail || "Unknown error"}`));
     }
 
+    // Reject all other errors
     return Promise.reject(error);
   }
 );
@@ -69,7 +75,7 @@ export const getCsrfToken = async () => {
     const response = await API.get("accounts/get-csrf-token/");
     return response.data.csrfToken;
   } catch (error) {
-    console.error("Failed to fetch CSRF token:", error.response?.data || error.message);
+    console.error("Failed to fetch CSRF token:", error);
     return null;
   }
 };
@@ -101,7 +107,6 @@ export const getCourse = (id) => API.get(`courses/${id}/`);
 export const createCourse = (data) => API.post("courses/", data);
 export const updateCourse = (id, data) => API.put(`courses/${id}/`, data);
 export const deleteCourse = (id) => API.delete(`courses/${id}/`);
-// ---------- COURSE-SPECIFIC ----------
 export const getCourseModules = (courseId) => API.get(`modules/?course=${courseId}`);
 export const getCourseMaterials = (courseId) => API.get(`materials/?course=${courseId}`);
 
@@ -131,14 +136,14 @@ export const getProgress = () => API.get("progress/");
 export const getCourseProgress = (courseId) => API.get(`progress/?course=${courseId}`);
 export const markAsComplete = (moduleId) => API.post("progress/", { module: moduleId, completed: true });
 
-// ---------- ANNOUNCEMENTS (Original, likely authenticated) ----------
+// ---------- ANNOUNCEMENTS ----------
 export const getAnnouncements = () => API.get("announcements/");
 export const createAnnouncement = (data) => API.post("announcements/", data);
 export const updateAnnouncement = (id, data) => API.put(`announcements/${id}/`, data);
 export const deleteAnnouncement = (id) => API.delete(`announcements/${id}/`);
 
 // ---------- INSTRUCTOR DASHBOARD ----------
-export const getInstructorDashboard = () => API.get("instructor/dashboard"); // Removed trailing slash to match urls.py
+export const getInstructorDashboard = () => API.get("instructor/dashboard/");
 
 // ---------- PROFILE ----------
 export const getProfile = () => API.get("editprofile/profile/");

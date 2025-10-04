@@ -1,7 +1,7 @@
 // src/pages/InstructorDashboard.jsx
 import React, { useState, useEffect } from "react";
-import API, { getInstructorDashboard } from "../services/api"; // Correct import from api.js
-import { getRole } from "../services/auth"; // Import auth functions from services/auth.js
+import { getInstructorDashboard } from "../services/api"; // Correct import
+import { getRole } from "../services/auth";
 
 export default function InstructorDashboard() {
   const [dashboardData, setDashboardData] = useState({});
@@ -42,6 +42,7 @@ export default function InstructorDashboard() {
     console.log("InstructorDashboard mounted, role:", role);
     if (role !== "INSTRUCTOR") {
       console.warn("Role mismatch: Expected INSTRUCTOR, got", role);
+      // Optional: Redirect or show message for mismatch
     }
     fetchDashboard();
   }, []);

@@ -1,6 +1,7 @@
 // src/context/AuthContext.jsx
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { getProfile } from "../services/api";
+import { getAccessToken } from "../services/auth";
 
 const AuthContext = createContext();
 
@@ -10,9 +11,18 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     const fetchUser = async () => {
+      const token = getAccessToken();
+
+      // If no token, guest user
+      if (!token) {
+        setUser(null);
+        setLoading(false);
+        return;
+      }
+
       try {
         const response = await getProfile();
-        setUser(response.data || {});
+        setUser(response.data || null);
       } catch (err) {
         console.error("Failed to fetch profile:", err);
         setUser(null);
@@ -20,6 +30,7 @@ export function AuthProvider({ children }) {
         setLoading(false);
       }
     };
+
     fetchUser();
   }, []);
 
