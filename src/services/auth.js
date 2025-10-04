@@ -1,31 +1,36 @@
 // src/services/auth.js
-// ---------- TOKEN HELPERS ----------
-export const getAccessToken = () => localStorage.getItem("access") || null;
-export const getRefreshToken = () => localStorage.getItem("refresh") || null;
-export const getRole = () => localStorage.getItem("role") || null;
-export const isAuthenticated = () => !!getAccessToken();
+const TOKEN_KEY = "auth_tokens";
+const ROLE_KEY = "user_role";
 
-// ---------- SAVE / LOGOUT ----------
-export const saveTokens = ({ access, refresh, role }) => {
-  if (access) localStorage.setItem("access", access);
-  if (refresh) localStorage.setItem("refresh", refresh);
-  if (role) localStorage.setItem("role", role);
+export const getAccessToken = () => {
+  const tokens = JSON.parse(localStorage.getItem(TOKEN_KEY) || "{}");
+  return tokens.access || null;
+};
+
+export const getRefreshToken = () => {
+  const tokens = JSON.parse(localStorage.getItem(TOKEN_KEY) || "{}");
+  return tokens.refresh || null;
+};
+
+export const saveTokens = (tokens) => {
+  localStorage.setItem(TOKEN_KEY, JSON.stringify(tokens));
+};
+
+export const getRole = () => {
+  return localStorage.getItem(ROLE_KEY) || "GUEST";
+};
+
+export const setRole = (role) => {
+  localStorage.setItem(ROLE_KEY, role);
+};
+
+export const isAuthenticated = () => {
+  const token = getAccessToken();
+  return !!token; // Simple check for token presence
 };
 
 export const logout = () => {
-  const authKeys = [
-    "access",
-    "refresh",
-    "role",
-    "user_id",
-    "username",
-    "email",
-    "student_id",
-    "lecturer_id",
-    "first_name",
-    "last_name",
-    "avatar",
-    "full_name",
-  ];
-  authKeys.forEach((key) => localStorage.removeItem(key));
+  localStorage.removeItem(TOKEN_KEY);
+  localStorage.removeItem(ROLE_KEY);
+  window.location.href = "/login";
 };

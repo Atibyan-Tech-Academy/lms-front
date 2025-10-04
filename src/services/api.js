@@ -56,7 +56,7 @@ API.interceptors.response.use(
       }
     } else if (error.response?.status === 500) {
       console.error("Server error (500) for:", originalRequest.url, error.response.data);
-      return Promise.reject(error); // Let frontend handle 500
+      return Promise.reject(new Error(`Server error (500): ${error.response.data.detail || "Unknown error"}`));
     }
 
     return Promise.reject(error);
@@ -138,7 +138,7 @@ export const updateAnnouncement = (id, data) => API.put(`announcements/${id}/`, 
 export const deleteAnnouncement = (id) => API.delete(`announcements/${id}/`);
 
 // ---------- INSTRUCTOR DASHBOARD ----------
-export const getInstructorDashboard = () => API.get("instructor/dashboard/");
+export const getInstructorDashboard = () => API.get("instructor/dashboard"); // Removed trailing slash to match urls.py
 
 // ---------- PROFILE ----------
 export const getProfile = () => API.get("editprofile/profile/");

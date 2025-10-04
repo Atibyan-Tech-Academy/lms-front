@@ -7,6 +7,7 @@ import StudentDashboard from "./pages/StudentDashboard";
 import InstructorDashboard from "./pages/InstructorDashboard";
 import EditProfile from "./pages/EditProfile";
 import AdminDashboard from "./pages/AdminDashboard";
+import Faq from "./components/Faq"; // Import Faq component
 import PrivateRoute from "./components/PrivateRoute";
 import DashboardLayout from "./layouts/DashboardLayout";
 import MyCourses from "./pages/MyCourses";
@@ -23,6 +24,7 @@ export default function App() {
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/editprofile" element={<EditProfile />} />
+        <Route path="/faqs" element={<Faq />} /> {/* Added FAQ route */}
 
         <Route
           path="/student"
@@ -76,7 +78,7 @@ export default function App() {
         <Route
           path="/instructor"
           element={
-            <PrivateRoute roleCheck={["LECTURER"]}>
+            <PrivateRoute roleCheck={["INSTRUCTOR"]}>
               <Navigate to="/instructor/dashboard" />
             </PrivateRoute>
           }
@@ -84,7 +86,7 @@ export default function App() {
         <Route
           path="/instructor/dashboard"
           element={
-            <PrivateRoute roleCheck={["LECTURER"]}>
+            <PrivateRoute roleCheck={["INSTRUCTOR"]}>
               <DashboardLayout>
                 <InstructorDashboard />
               </DashboardLayout>
@@ -94,7 +96,7 @@ export default function App() {
         <Route
           path="/instructor/my-courses"
           element={
-            <PrivateRoute roleCheck={["LECTURER"]}>
+            <PrivateRoute roleCheck={["INSTRUCTOR"]}>
               <DashboardLayout>
                 <MyCourses />
               </DashboardLayout>
@@ -104,7 +106,7 @@ export default function App() {
         <Route
           path="/instructor/create-course"
           element={
-            <PrivateRoute roleCheck={["LECTURER"]}>
+            <PrivateRoute roleCheck={["INSTRUCTOR"]}>
               <DashboardLayout>
                 <CreateCourse />
               </DashboardLayout>
@@ -132,7 +134,7 @@ export default function App() {
         />
       </Routes>
 
-      {user && ["STUDENT", "LECTURER", "ADMIN"].includes(user.role) && (
+      {user && ["STUDENT", "INSTRUCTOR", "ADMIN"].includes(user.role) && (
         <ChatWidget token={token} user={user} />
       )}
     </>

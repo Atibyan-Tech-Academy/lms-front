@@ -12,17 +12,17 @@ import {
 } from "../services/api";
 import { isAuthenticated, getRole } from "../services/auth";
 import StudentLayout from "../layouts/StudentLayout";
-import { useAuth } from "../context/AuthContext"; // Add this import
+import { useAuth } from "../context/AuthContext";
 
 export default function StudentDashboard() {
-  const { user, setUser } = useAuth(); // Use context
+  const { user, setUser } = useAuth();
   const [courses, setCourses] = useState([]);
   const [selectedCourse, setSelectedCourse] = useState(null);
   const [modules, setModules] = useState([]);
   const [materials, setMaterials] = useState([]);
   const [progress, setProgress] = useState({});
   const [announcements, setAnnouncements] = useState([]);
-  const [profile, setProfile] = useState(user || {}); // Initialize with context user
+  const [profile, setProfile] = useState(user || {});
   const [error, setError] = useState(null);
 
   const navigate = useNavigate();
@@ -47,7 +47,7 @@ export default function StudentDashboard() {
       setCourses(coursesRes.data || []);
       setProfile(profileRes.data || {});
       setAnnouncements(announcementsRes.data || []);
-      if (profileRes.data) setUser(profileRes.data); // Sync with AuthContext
+      if (profileRes.data) setUser(profileRes.data);
     } catch (err) {
       setError("Failed to load dashboard data: " + (err.response?.data?.detail || err.message));
     }
@@ -63,7 +63,6 @@ export default function StudentDashboard() {
         .then(([modulesRes, materialsRes, progressRes]) => {
           setModules(modulesRes.data || []);
           setMaterials(materialsRes.data || []);
-
           const prog = (modulesRes.data || []).reduce(
             (acc, m) => ({
               ...acc,
@@ -89,21 +88,11 @@ export default function StudentDashboard() {
   return (
     <StudentLayout>
       {error && <p className="text-red-500 mb-4">{error}</p>}
-
-      {/* Gradient Header */}
       <div
-        style={{
-          background: "linear-gradient(to right, #04CE65, #026833)",
-          width: "100%",
-          textAlign: "center",
-          padding: "20px",
-          color: "white",
-        }}
+        style={{ background: "linear-gradient(to right, #04CE65, #026833)", width: "100%", textAlign: "center", padding: "20px", color: "white" }}
       >
         <h1 className="text-2xl font-bold">Student Dashboard</h1>
       </div>
-
-      {/* COURSES TAB */}
       {activeTab === "courses" && !selectedCourse && (
         <div>
           <h2 className="text-2xl font-bold mb-4">My Courses</h2>
@@ -117,28 +106,17 @@ export default function StudentDashboard() {
                 <h3 className="text-xl font-semibold">{course.title}</h3>
                 <p className="text-gray-600 dark:text-gray-400">{course.description}</p>
                 <div className="w-full bg-gray-200 rounded-full h-2.5 mt-2 dark:bg-gray-700">
-                  <div
-                    className="bg-blue-600 h-2.5 rounded-full"
-                    style={{ width: "0%" }}
-                  ></div>
+                  <div className="bg-blue-600 h-2.5 rounded-full" style={{ width: "0%" }}></div>
                 </div>
               </div>
             ))}
           </div>
         </div>
       )}
-
-      {/* COURSE DETAILS */}
       {activeTab === "courses" && selectedCourse && (
         <div>
-          <button
-            onClick={() => setSelectedCourse(null)}
-            className="mb-4 text-blue-600 hover:underline dark:text-blue-400"
-          >
-            ← Back to Courses
-          </button>
+          <button onClick={() => setSelectedCourse(null)} className="mb-4 text-blue-600 hover:underline dark:text-blue-400">← Back to Courses</button>
           <h2 className="text-2xl font-bold mb-4">{selectedCourse.title}</h2>
-
           <h3 className="text-lg font-semibold mb-2">Modules</h3>
           {modules.map((module) => (
             <div key={module.id} className="mb-4 p-4 bg-white rounded-lg shadow dark:bg-gray-800">
@@ -152,7 +130,6 @@ export default function StudentDashboard() {
               </button>
             </div>
           ))}
-
           <h3 className="text-lg font-semibold mt-6 mb-2">Materials</h3>
           {materials.map((material) => (
             <a
@@ -167,8 +144,6 @@ export default function StudentDashboard() {
           ))}
         </div>
       )}
-
-      {/* ANNOUNCEMENTS */}
       {activeTab === "announcements" && (
         <div>
           <h2 className="text-2xl font-bold mb-4">Announcements</h2>
@@ -176,30 +151,17 @@ export default function StudentDashboard() {
             <div key={ann.id} className="mb-4 p-4 bg-white rounded-lg shadow dark:bg-gray-800">
               <h3 className="font-semibold">{ann.title}</h3>
               <p className="text-gray-600 dark:text-gray-400">{ann.content}</p>
-              <small className="text-gray-500">
-                {new Date(ann.created_at).toLocaleDateString()}
-              </small>
+              <small className="text-gray-500">{new Date(ann.created_at).toLocaleDateString()}</small>
             </div>
           ))}
         </div>
       )}
-
-      {/* PROFILE */}
       {activeTab === "profile" && (
         <div>
           <h2 className="text-2xl font-bold mb-4">Profile</h2>
-          <p>
-            <strong>Name:</strong>{" "}
-            {profile.first_name && profile.last_name
-              ? `${profile.first_name} ${profile.last_name}`
-              : "Loading..."}
-          </p>
+          <p><strong>Name:</strong> {profile.first_name && profile.last_name ? `${profile.first_name} ${profile.last_name}` : "Loading..."}</p>
           <p><strong>Email:</strong> {profile.email || "Loading..."}</p>
-          <img
-            src={profile.profile_image || "/docs/images/people/profile-picture-3.jpg"}
-            alt="Avatar"
-            className="w-24 h-24 rounded-full mt-4"
-          />
+          <img src={profile.profile_image || "/docs/images/people/profile-picture-3.jpg"} alt="Avatar" className="w-24 h-24 rounded-full mt-4" />
         </div>
       )}
     </StudentLayout>
