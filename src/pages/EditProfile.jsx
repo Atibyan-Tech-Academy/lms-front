@@ -1,20 +1,21 @@
 import React, { useEffect, useState } from "react";
 import { getProfile, updateProfile } from "../services/api";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
+import { useAuth } from "../context/AuthContext";
 
 const EditProfile = () => {
+  const { user, updateUser } = useAuth();
   const [formData, setFormData] = useState({
     first_name: "",
     last_name: "",
+    full_name: "",
     email: "",
-    username: "",
-    display_name: "",
-    profile_image: null, // ✅ FIXED
+    profile_image: null,
+    password: "",
   });
   const [preview, setPreview] = useState(null);
   const [showPassword, setShowPassword] = useState(false);
 
-  // Fetch profile on mount
   useEffect(() => {
     const fetchProfile = async () => {
       try {
@@ -22,14 +23,14 @@ const EditProfile = () => {
         setFormData({
           first_name: data.first_name || "",
           last_name: data.last_name || "",
+          full_name: data.full_name || "",
           email: data.email || "",
-          username: data.username || "",
-          display_name: data.display_name || "",
-          profile_image: null, // ✅ FIXED
+          profile_image: null,
+          password: "",
         });
-        if (data.profile_image) setPreview(data.profile_image); // ✅ FIXED
-      } catch (error) {
-        console.error("Failed to load profile:", error);
+        if (data.picture) setPreview(data.picture);
+      } catch (err) {
+        console.error("Failed to load profile:", err);
       }
     };
     fetchProfile();
@@ -37,8 +38,8 @@ const EditProfile = () => {
 
   const handleChange = (e) => {
     const { name, value, files } = e.target;
-    if (name === "profile_image" && files.length > 0) { // ✅ FIXED
-      setFormData({ ...formData, profile_image: files[0] }); // ✅ FIXED
+    if (name === "profile_image" && files.length > 0) {
+      setFormData({ ...formData, profile_image: files[0] });
       setPreview(URL.createObjectURL(files[0]));
     } else {
       setFormData({ ...formData, [name]: value });
@@ -47,17 +48,24 @@ const EditProfile = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const data = new FormData();
+    Object.entries(formData).forEach(([key, value]) => {
+      if (value !== null) data.append(key, value);
+    });
+
     try {
-      const updated = await updateProfile(formData);
+      const updated = await updateProfile(data);
       alert("Profile updated successfully");
 
-      // ✅ Update preview & localStorage
-      if (updated.profile_image) { // ✅ FIXED
-        setPreview(updated.profile_image);
-        localStorage.setItem("avatar", updated.profile_image); // ✅ FIXED
-      }
-    } catch (error) {
-      console.error("Profile update failed:", error);
+      // Sync with AuthContext
+      updateUser({
+        avatar: updated.picture || preview,
+        username: updated.username || user.username,
+      });
+
+      if (updated.picture) setPreview(updated.picture);
+    } catch (err) {
+      console.error("Profile update failed:", err);
       alert("Failed to update profile");
     }
   };
@@ -84,9 +92,9 @@ const EditProfile = () => {
         />
         <input
           type="text"
-          name="username"
-          placeholder="Username"
-          value={formData.username}
+          name="full_name"
+          placeholder="Full Name"
+          value={formData.full_name}
           onChange={handleChange}
           className="w-full border p-2 rounded"
         />
@@ -97,17 +105,9 @@ const EditProfile = () => {
           value={formData.email}
           onChange={handleChange}
           className="w-full border p-2 rounded"
-        />
-        <input
-          type="text"
-          name="display_name"
-          placeholder="Display Name"
-          value={formData.display_name}
-          onChange={handleChange}
-          className="w-full border p-2 rounded"
+          disabled
         />
 
-        {/* Profile image upload */}
         <div>
           <label className="block mb-2">Profile Image</label>
           {preview && (
@@ -117,15 +117,15 @@ const EditProfile = () => {
               className="w-20 h-20 rounded-full mb-2 object-cover"
             />
           )}
-          <input type="file" name="profile_image" onChange={handleChange} /> {/* ✅ FIXED */}
+          <input type="file" name="profile_image" onChange={handleChange} />
         </div>
 
-        {/* Password (optional with toggle) */}
         <div className="relative">
           <input
             type={showPassword ? "text" : "password"}
             name="password"
             placeholder="New Password (optional)"
+            value={formData.password}
             onChange={handleChange}
             className="w-full border p-2 rounded pr-10"
           />

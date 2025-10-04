@@ -1,58 +1,56 @@
 // src/context/AuthContext.jsx
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { getProfile } from "../services/api";
-import { getAccessToken, logout as authLogout } from "../services/auth";
+import { getAccessToken, getRole, logout } from "../services/auth";
 
 const AuthContext = createContext();
 
-export function AuthProvider({ children }) {
+export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Only fetch profile if access token exists
+  // Load profile if token exists (no logout on failure)
   useEffect(() => {
-    const fetchUser = async () => {
+    const initAuth = async () => {
       const token = getAccessToken();
       if (!token) {
-        setUser(null);
         setLoading(false);
         return;
       }
+
       try {
-        const response = await getProfile();
-        setUser(response.data || null);
+        const res = await getProfile();
+        setUser(res.data);
       } catch (err) {
         console.error("Failed to fetch profile:", err);
+        // Don't logout on profile fetch failure - just set user to null
         setUser(null);
-        if (err.response?.status === 401) {
-          authLogout();
-        }
       } finally {
         setLoading(false);
       }
     };
-
-    fetchUser();
+    initAuth();
   }, []);
 
-  const login = (userData, accessToken) => {
+  const login = (userData) => {
     setUser(userData);
+    console.log("AuthContext login:", userData); // Debug log
   };
 
-  const logout = () => {
-    authLogout();
+  const updateUser = (updatedData) => {
+    setUser((prev) => ({ ...prev, ...updatedData }));
+  };
+
+  const handleLogout = () => {
     setUser(null);
+    logout();
   };
 
   return (
-    <AuthContext.Provider value={{ user, setUser, login, logout, loading }}>
-      {!loading && children}
+    <AuthContext.Provider value={{ user, login, updateUser, handleLogout, loading }}>
+      {children}
     </AuthContext.Provider>
   );
-}
-
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) throw new Error("useAuth must be used within AuthProvider");
-  return context;
 };
+
+export const useAuth = () => useContext(AuthContext);

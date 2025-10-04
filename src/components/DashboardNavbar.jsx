@@ -1,48 +1,18 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import image from "../assets/aoi-portal.png";
-import { getProfile } from "../services/api"; // optional backend sync
+import { useAuth } from "../context/AuthContext";
 
 const DashboardNavbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { user } = useAuth(); // ✅ Use AuthContext
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
-  // 🔹 Local state (with fallbacks from localStorage)
-  const [role, setRole] = useState(localStorage.getItem("role") || "STUDENT");
-  const [username, setUsername] = useState(localStorage.getItem("username") || "User");
-  const [avatar, setAvatar] = useState(localStorage.getItem("avatar"));
-  const [firstName, setFirstName] = useState(localStorage.getItem("first_name") || "");
-  const [lastName, setLastName] = useState(localStorage.getItem("last_name") || "");
-  const [studentId, setStudentId] = useState(localStorage.getItem("student_id") || "N/A");
-
   const activeTab =
-    location.pathname.split("/").pop() || (role === "LECTURER" ? "my-courses" : "courses");
-
-  // 🔹 Sync profile with backend (optional)
-  useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const data = await getProfile();
-        if (data) {
-          setUsername(data.username || "User");
-          setFirstName(data.first_name || "");
-          setLastName(data.last_name || "");
-          setStudentId(data.student_id || "N/A");
-          setRole(data.role || "STUDENT");
-
-          if (data.profile_image) {
-            setAvatar(data.profile_image);
-            localStorage.setItem("avatar", data.profile_image);
-          }
-        }
-      } catch (err) {
-        console.warn("Profile sync failed, using localStorage only");
-      }
-    };
-    fetchProfile();
-  }, []);
+    location.pathname.split("/").pop() ||
+    (user.role === "LECTURER" ? "my-courses" : "courses");
 
   const handleLogout = () => {
     localStorage.clear();
@@ -50,7 +20,7 @@ const DashboardNavbar = () => {
   };
 
   const getMenuItems = () => {
-    switch (role) {
+    switch (user.role) {
       case "STUDENT":
         return [
           { name: "Courses", to: "/student/dashboard#courses" },
@@ -76,10 +46,12 @@ const DashboardNavbar = () => {
 
   // 🔹 Fallback initials if no avatar
   const getInitials = () => {
-    if (firstName || lastName) {
-      return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
+    if (user.first_name || user.last_name) {
+      return `${user.first_name?.charAt(0) || ""}${
+        user.last_name?.charAt(0) || ""
+      }`.toUpperCase();
     }
-    return username.charAt(0).toUpperCase();
+    return user.username?.charAt(0)?.toUpperCase() || "U";
   };
 
   return (
@@ -99,10 +71,10 @@ const DashboardNavbar = () => {
             className="flex text-sm bg-gray-800 rounded-full focus:ring-4 focus:ring-gray-300 dark:focus:ring-gray-600"
           >
             <span className="sr-only">Open user menu</span>
-            {avatar ? (
+            {user.avatar ? (
               <img
                 className="w-8 h-8 rounded-full object-cover"
-                src={avatar}
+                src={user.avatar}
                 alt="User Avatar"
               />
             ) : (
@@ -117,10 +89,10 @@ const DashboardNavbar = () => {
             <div className="absolute right-0 top-12 z-50 w-48 my-2 text-base list-none bg-white divide-y divide-gray-100 rounded-lg shadow-sm dark:bg-gray-700 dark:divide-gray-600">
               <div className="px-4 py-3">
                 <span className="block text-sm text-gray-900 dark:text-white">
-                  {firstName} {lastName}
+                  {user.first_name} {user.last_name}
                 </span>
                 <span className="block text-sm text-gray-500 truncate dark:text-gray-400">
-                  {studentId}
+                  {user.username}
                 </span>
               </div>
               <ul className="py-2">
