@@ -1,6 +1,6 @@
 // src/pages/InstructorDashboard.jsx
 import React, { useState, useEffect } from "react";
-import { getInstructorDashboard } from "../services/api"; // Correct import
+import { getInstructorDashboard } from "../services/api";
 import { getRole } from "../services/auth";
 
 export default function InstructorDashboard() {
@@ -40,10 +40,6 @@ export default function InstructorDashboard() {
   useEffect(() => {
     const role = getRole();
     console.log("InstructorDashboard mounted, role:", role);
-    if (role !== "INSTRUCTOR") {
-      console.warn("Role mismatch: Expected INSTRUCTOR, got", role);
-      // Optional: Redirect or show message for mismatch
-    }
     fetchDashboard();
   }, []);
 

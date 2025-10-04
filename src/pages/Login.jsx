@@ -11,59 +11,54 @@ export default function Login() {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const { setUser } = useAuth(); // Use setter from AuthContext
+  const { login } = useAuth();
 
   const handleSubmit = async (e) => {
-    e.preventDefault(); // Prevent full page reload
+    e.preventDefault();
     setError(null);
     setLoading(true);
 
     try {
       console.log("Sending login payload:", { identifier, password });
 
-      // Get CSRF token
-      const csrfToken = await getCsrfToken();
-
-      const response = await apiLogin({ identifier, password }, csrfToken);
-      const { access, refresh, role, user } = response.data;
-
-      // Save tokens and role
-      localStorage.setItem("auth_tokens", JSON.stringify({ access, refresh }));
-      localStorage.setItem("user_role", role);
-
-      if (user) {
-        // Save user info
-        localStorage.setItem("user_id", user.id);
-        localStorage.setItem("username", user.username || "");
-        localStorage.setItem("email", user.email || "");
-        localStorage.setItem("student_id", user.student_id || "");
-        localStorage.setItem("lecturer_id", user.lecturer_id || "");
-        localStorage.setItem("first_name", user.first_name || "");
-        localStorage.setItem("last_name", user.last_name || "");
-        localStorage.setItem("avatar", user.profile_image || "");
-        const fullName = [user.first_name, user.last_name].filter(Boolean).join(" ");
-        localStorage.setItem("full_name", fullName || user.username);
-
-        // Update AuthContext
-        setUser(user);
+      // Fetch CSRF token
+      let csrfToken = await getCsrfToken();
+      if (!csrfToken) {
+        console.warn("No CSRF token fetched, proceeding without it.");
       }
 
-      // Redirect based on role
+      const response = await apiLogin({ identifier, password }, csrfToken);
+      const { access, refresh, role, user: userData } = response.data;
+
+      console.log("Login role:", role); // Debug log
+
+      // Update AuthContext
+      login(userData);
+
+      // Store in localStorage
+      localStorage.setItem("access", access);
+      localStorage.setItem("refresh", refresh);
+      localStorage.setItem("role", role);
+      localStorage.setItem("user", JSON.stringify(userData));
+
+      // Redirect based on role (fixed for "LECTURER")
       switch (role) {
         case "STUDENT":
-          navigate("/student/dashboard");
+          navigate("/student/dashboard", { replace: true });
           break;
-        case "LECTURER":
-          navigate("/instructor/dashboard");
+        case "LECTURER": // Matches backend
+          navigate("/instructor/dashboard", { replace: true });
           break;
         case "ADMIN":
-          navigate("/admin/dashboard");
+          navigate("/admin/dashboard", { replace: true });
           break;
         default:
-          navigate("/");
+          console.warn("Unknown role, redirecting to home:", role);
+          navigate("/", { replace: true });
       }
     } catch (err) {
       console.error("Login error:", err);
+      console.log("Server response:", JSON.stringify(err.response?.data, null, 2));
       if (err.response?.status === 401) {
         setError("Invalid credentials. Check your email/ID or password.");
       } else if (err.response?.status === 403) {
@@ -73,10 +68,10 @@ export default function Login() {
       } else {
         setError(
           "Login failed: " +
-            (err.response?.data?.detail ||
-              err.response?.data?.non_field_errors?.[0] ||
-              JSON.stringify(err.response?.data) ||
-              err.message)
+          (err.response?.data?.detail ||
+            err.response?.data?.non_field_errors?.[0] ||
+            JSON.stringify(err.response?.data) ||
+            err.message)
         );
       }
     } finally {
@@ -90,7 +85,7 @@ export default function Login() {
       <div className="w-1/2 flex flex-col justify-center px-16 bg-gray-50 dark:bg-gray-800">
         <h2 className="text-3xl font-bold mb-6 text-gray-800 dark:text-gray-200">Welcome Back</h2>
         {error && <p className="text-red-500 dark:text-red-400 text-sm mb-3">{error}</p>}
-        <form className="space-y-5" onSubmit={handleSubmit}>
+        <div className="space-y-5">
           <div>
             <label className="block text-sm mb-1 text-gray-700 dark:text-gray-300">
               Email / Username / Student ID / Lecturer ID
@@ -116,13 +111,14 @@ export default function Login() {
             />
           </div>
           <button
-            type="submit"
+            type="button"
+            onClick={handleSubmit}
             disabled={loading}
             className="w-full py-3 mt-3 bg-green-800 text-white rounded-lg hover:bg-green-700 transition dark:bg-green-900 dark:hover:bg-green-800"
           >
             {loading ? "Logging in..." : "Login"}
           </button>
-        </form>
+        </div>
       </div>
 
       {/* Right side image */}

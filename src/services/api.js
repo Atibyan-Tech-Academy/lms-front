@@ -11,23 +11,21 @@ const API = axios.create({
   },
 });
 
-// ---------- LIST OF PUBLIC ENDPOINTS ----------
+// ---------- PUBLIC ENDPOINTS ----------
 const PUBLIC_ENDPOINTS = [
   "accounts/login",
   "accounts/get-csrf-token",
   "public-announcements",
-  "editprofile/profile", // treat profile fetch as public for guests
 ];
 
 // ---------- REQUEST INTERCEPTOR ----------
 API.interceptors.request.use((config) => {
   const token = getAccessToken();
 
-  if (token && !PUBLIC_ENDPOINTS.some((endpoint) => config.url.includes(endpoint))) {
+  if (token) {
     config.headers["Authorization"] = `Bearer ${token}`;
   }
 
-  // Ensure trailing slash for relative URLs
   if (config.url && !config.url.startsWith("http") && !config.url.endsWith("/")) {
     config.url += "/";
   }
@@ -40,8 +38,9 @@ API.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
-
-    const isPublic = PUBLIC_ENDPOINTS.some((endpoint) => originalRequest.url.includes(endpoint));
+    const isPublic = PUBLIC_ENDPOINTS.some((endpoint) =>
+      originalRequest.url.includes(endpoint)
+    );
 
     if (error.response?.status === 401 && !originalRequest._retry && !isPublic) {
       originalRequest._retry = true;
@@ -64,7 +63,6 @@ API.interceptors.response.use(
       }
     }
 
-    // Reject all other errors
     return Promise.reject(error);
   }
 );

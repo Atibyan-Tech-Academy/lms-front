@@ -88,9 +88,7 @@ export default function StudentDashboard() {
   return (
     <StudentLayout>
       {error && <p className="text-red-500 mb-4">{error}</p>}
-      <div
-        style={{ background: "linear-gradient(to right, #04CE65, #026833)", width: "100%", textAlign: "center", padding: "20px", color: "white" }}
-      >
+      <div style={{ background: "linear-gradient(to right, #04CE65, #026833)", width: "100%", textAlign: "center", padding: "20px", color: "white" }}>
         <h1 className="text-2xl font-bold">Student Dashboard</h1>
       </div>
       {activeTab === "courses" && !selectedCourse && (
