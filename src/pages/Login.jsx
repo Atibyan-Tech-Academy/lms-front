@@ -11,32 +11,28 @@ export default function Login() {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const { login } = useAuth(); // Use AuthContext login
+  const { setUser } = useAuth(); // Use setter from AuthContext
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+    e.preventDefault(); // Prevent full page reload
     setError(null);
     setLoading(true);
 
     try {
       console.log("Sending login payload:", { identifier, password });
 
-      // Fetch CSRF token
-      let csrfToken = await getCsrfToken();
-      if (!csrfToken) {
-        console.warn("No CSRF token fetched, proceeding without it.");
-      }
+      // Get CSRF token
+      const csrfToken = await getCsrfToken();
 
       const response = await apiLogin({ identifier, password }, csrfToken);
       const { access, refresh, role, user } = response.data;
 
-      // Update AuthContext and localStorage
-      login(user, access); // Sync with AuthContext
-      localStorage.setItem("access", access);
-      localStorage.setItem("refresh", refresh);
-      localStorage.setItem("role", role);
+      // Save tokens and role
+      localStorage.setItem("auth_tokens", JSON.stringify({ access, refresh }));
+      localStorage.setItem("user_role", role);
 
       if (user) {
+        // Save user info
         localStorage.setItem("user_id", user.id);
         localStorage.setItem("username", user.username || "");
         localStorage.setItem("email", user.email || "");
@@ -47,6 +43,9 @@ export default function Login() {
         localStorage.setItem("avatar", user.profile_image || "");
         const fullName = [user.first_name, user.last_name].filter(Boolean).join(" ");
         localStorage.setItem("full_name", fullName || user.username);
+
+        // Update AuthContext
+        setUser(user);
       }
 
       // Redirect based on role
@@ -65,7 +64,6 @@ export default function Login() {
       }
     } catch (err) {
       console.error("Login error:", err);
-      console.log("Server response:", JSON.stringify(err.response?.data, null, 2));
       if (err.response?.status === 401) {
         setError("Invalid credentials. Check your email/ID or password.");
       } else if (err.response?.status === 403) {
@@ -75,10 +73,10 @@ export default function Login() {
       } else {
         setError(
           "Login failed: " +
-          (err.response?.data?.detail ||
-            err.response?.data?.non_field_errors?.[0] ||
-            JSON.stringify(err.response?.data) ||
-            err.message)
+            (err.response?.data?.detail ||
+              err.response?.data?.non_field_errors?.[0] ||
+              JSON.stringify(err.response?.data) ||
+              err.message)
         );
       }
     } finally {
@@ -92,9 +90,11 @@ export default function Login() {
       <div className="w-1/2 flex flex-col justify-center px-16 bg-gray-50 dark:bg-gray-800">
         <h2 className="text-3xl font-bold mb-6 text-gray-800 dark:text-gray-200">Welcome Back</h2>
         {error && <p className="text-red-500 dark:text-red-400 text-sm mb-3">{error}</p>}
-        <div className="space-y-5">
+        <form className="space-y-5" onSubmit={handleSubmit}>
           <div>
-            <label className="block text-sm mb-1 text-gray-700 dark:text-gray-300">Email / Username / Student ID / Lecturer ID</label>
+            <label className="block text-sm mb-1 text-gray-700 dark:text-gray-300">
+              Email / Username / Student ID / Lecturer ID
+            </label>
             <input
               type="text"
               value={identifier}
@@ -116,14 +116,13 @@ export default function Login() {
             />
           </div>
           <button
-            type="button"
-            onClick={handleSubmit}
+            type="submit"
             disabled={loading}
             className="w-full py-3 mt-3 bg-green-800 text-white rounded-lg hover:bg-green-700 transition dark:bg-green-900 dark:hover:bg-green-800"
           >
             {loading ? "Logging in..." : "Login"}
           </button>
-        </div>
+        </form>
       </div>
 
       {/* Right side image */}
