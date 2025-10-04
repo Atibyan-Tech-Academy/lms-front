@@ -155,6 +155,15 @@ export const updateProfile = (data) => {
   return API.put("editprofile/profile/", data, config);
 };
 
+export const sendResetCode = (data, csrfToken) =>
+  api.post("/api/password-reset/", data, { headers: { "X-CSRFToken": csrfToken } });
+
+export const verifyResetCode = (data, csrfToken) =>
+  api.post("/api/password-reset-verify/", data, { headers: { "X-CSRFToken": csrfToken } });
+
+export const resetPassword = (data, csrfToken) =>
+  api.post("/api/password-reset-confirm/", data, { headers: { "X-CSRFToken": csrfToken } });
+
 // Export API as both default & named
 export default API;
 export { API };

@@ -13,6 +13,7 @@ import DashboardLayout from "./layouts/DashboardLayout";
 import MyCourses from "./pages/MyCourses";
 import CreateCourse from "./pages/CreateCourse";
 import ChatWidget from "./components/messaging/ChatWidget";
+import ForgotPassword from "./pages/ForgotPassword";
 
 export default function App() {
   const user = JSON.parse(localStorage.getItem("user")) || null;
@@ -23,6 +24,7 @@ export default function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/forgotpassword" element={<ForgotPassword />}/>
         <Route path="/editprofile" element={<EditProfile />} />
         <Route path="/faqs" element={<Faq />} /> {/* Added FAQ route */}
 

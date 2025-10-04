@@ -1,6 +1,6 @@
-// src/pages/Login.jsx
+// src/pages/Login.jsx (Modified)
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom"; // Added Link import
 import { login as apiLogin, getCsrfToken } from "../services/api";
 import logoLight from "../assets/Aoi2-light.png";
 import { useAuth } from "../context/AuthContext";
@@ -115,6 +115,9 @@ export default function Login() {
               required
             />
           </div>
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            <Link to="/forgotpassword" className="text-blue-500 hover:underline">Forgot Password?</Link>
+          </p>
           <button
             type="submit"
             disabled={loading}
