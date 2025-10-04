@@ -4,19 +4,27 @@ import { getAccessToken, getRefreshToken, saveTokens, logout } from "./auth";
 
 // ---------- BASE CONFIG ----------
 const API = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "http://127.0.0.1:8000/api/",
+  baseURL: import.meta.env.VITE_API_URL || "http://127.0.0.1:8000/api/", // Ensure this matches your Django server
   withCredentials: true,
+  headers: {
+    "Content-Type": "application/json",
+  },
 });
 
 // ---------- REQUEST INTERCEPTOR ----------
 API.interceptors.request.use((config) => {
   const token = getAccessToken();
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+  // Only add Authorization header for non-public endpoints
+  const publicEndpoints = ["public-announcements", "accounts/get-csrf-token"];
+  if (token && !publicEndpoints.some((endpoint) => config.url.includes(endpoint))) {
+    config.headers["Authorization"] = `Bearer ${token}`;
   }
+
+  // Ensure URL ends with slash if not absolute
   if (config.url && !config.url.startsWith("http") && !config.url.endsWith("/")) {
     config.url += "/";
   }
+
   return config;
 });
 
@@ -28,6 +36,7 @@ API.interceptors.response.use(
 
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
+      console.log("401 detected, attempting refresh for:", originalRequest.url);
       const refreshToken = getRefreshToken();
 
       if (refreshToken) {
@@ -35,42 +44,73 @@ API.interceptors.response.use(
           const res = await API.post("accounts/refresh/", { refresh: refreshToken });
           const newAccess = res.data.access;
           saveTokens({ access: newAccess, refresh: refreshToken });
-          originalRequest.headers.Authorization = `Bearer ${newAccess}`;
+          originalRequest.headers["Authorization"] = `Bearer ${newAccess}`;
           return API(originalRequest);
         } catch (err) {
-          console.error("Refresh token failed", err);
-          logout();
-          window.location.href = "/login";
+          console.error("Refresh token failed for", originalRequest.url, err);
+          // Only logout if the error indicates a permanent auth failure
+          if (err.response?.status === 401) {
+            logout();
+          }
         }
       } else {
-        logout();
-        window.location.href = "/login";
+        console.log("No refresh token, logging out for:", originalRequest.url);
+        logout(); // Logout only if no refresh token exists
       }
+    } else if (error.response?.status === 500) {
+      console.error("Server error (500) for:", originalRequest.url, error.response.data);
+      return Promise.reject(error); // Let frontend handle 500
     }
 
     return Promise.reject(error);
   }
 );
 
-// ---------- AUTH ENDPOINTS ----------
-export const login = async (credentials) => {
-  const res = await API.post("accounts/login/", credentials);
-  saveTokens({
-    access: res.data.access,
-    refresh: res.data.refresh,
-    role: res.data.role,
-  });
-  return res;
+// ---------- AUTH ----------
+export const getCsrfToken = async () => {
+  try {
+    const response = await API.get("accounts/get-csrf-token/");
+    return response.data.csrfToken;
+  } catch (error) {
+    console.error("Failed to fetch CSRF token:", error.response?.data || error.message);
+    return null;
+  }
+};
+
+export const login = async ({ identifier, password }, csrfToken) => {
+  try {
+    const headers = csrfToken ? { "X-CSRFToken": csrfToken } : {};
+    const res = await API.post(
+      "accounts/login/",
+      { identifier, password },
+      { headers }
+    );
+    saveTokens({
+      access: res.data.access,
+      refresh: res.data.refresh,
+      role: res.data.role,
+    });
+    return res;
+  } catch (error) {
+    console.error("Login API error:", error.response?.data || error.message);
+    throw error;
+  }
 };
 
 export const refresh = (refreshToken) => API.post("accounts/refresh/", { refresh: refreshToken });
 
-// ---------- COURSES ENDPOINTS ----------
+// ---------- PUBLIC ANNOUNCEMENTS ----------
+export const getPublicAnnouncements = () => API.get("public-announcements/");
+
+// ---------- COURSES ----------
 export const getAllCourses = () => API.get("courses/");
 export const getCourse = (id) => API.get(`courses/${id}/`);
 export const createCourse = (data) => API.post("courses/", data);
 export const updateCourse = (id, data) => API.put(`courses/${id}/`, data);
 export const deleteCourse = (id) => API.delete(`courses/${id}/`);
+// ---------- COURSE-SPECIFIC ----------
+export const getCourseModules = (courseId) => API.get(`modules/?course=${courseId}`);
+export const getCourseMaterials = (courseId) => API.get(`materials/?course=${courseId}`);
 
 // ---------- MODULES ----------
 export const getAllModules = () => API.get("modules/");
@@ -91,12 +131,14 @@ export const deleteMaterial = (id) => API.delete(`materials/${id}/`);
 // ---------- ENROLLMENTS ----------
 export const getEnrollments = () => API.get("enrollments/");
 export const enrollStudent = (data) => API.post("enrollments/", data);
+export const getEnrolledCourses = () => API.get("enrollments/");
 
 // ---------- STUDENT PROGRESS ----------
 export const getProgress = () => API.get("progress/");
+export const getCourseProgress = (courseId) => API.get(`progress/?course=${courseId}`);
 export const markAsComplete = (moduleId) => API.post("progress/", { module: moduleId, completed: true });
 
-// ---------- ANNOUNCEMENTS ----------
+// ---------- ANNOUNCEMENTS (Original, likely authenticated) ----------
 export const getAnnouncements = () => API.get("announcements/");
 export const createAnnouncement = (data) => API.post("announcements/", data);
 export const updateAnnouncement = (id, data) => API.put(`announcements/${id}/`, data);
@@ -115,4 +157,6 @@ export const updateProfile = (data) => {
   return API.put("editprofile/profile/", data, config);
 };
 
+// Export API as both default & named
 export default API;
+export { API };

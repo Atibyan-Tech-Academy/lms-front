@@ -3,7 +3,8 @@ import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Carousel from "../components/Carousel";
-import API from "../services/api";
+import { getPublicAnnouncements } from "../services/api";
+import Footer from "../components/Footer";
 
 export default function Home() {
   const [announcements, setAnnouncements] = useState([]);
@@ -11,23 +12,24 @@ export default function Home() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const fetchAnnouncements = async () => {
+    const fetchPublicAnnouncements = async () => {
       try {
-        const response = await API.get("courses/announcements/"); // Updated to match /api/courses/announcements/
-        setAnnouncements(response.data);
-      } catch (err) {
-        console.error("Error fetching announcements:", err);
-        if (err.response?.status === 404) {
-          console.log("Announcements endpoint not found—skipping.");
-          setError(null); // No error shown for 404
+        const response = await getPublicAnnouncements();
+        console.log("API Response:", response.data);
+        if (Array.isArray(response.data)) {
+          setAnnouncements(response.data);
         } else {
-          setError("Failed to load announcements.");
+          console.warn("Unexpected response format, expected array:", response.data);
+          setAnnouncements([]);
         }
+      } catch (err) {
+        console.error("Error fetching public announcements:", err.response?.data || err.message, err.response?.status);
+        setError(`Failed to load upcoming events: ${err.message || 'Server error (500) - Check backend logs'}`);
       } finally {
         setLoading(false);
       }
     };
-    fetchAnnouncements();
+    fetchPublicAnnouncements();
   }, []);
 
   if (loading) {
@@ -36,8 +38,8 @@ export default function Home() {
         <Navbar />
         <Carousel />
         <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 py-8">
-          <h1 className="text-2xl text-red-500 font-bold mb-6">Welcome to AOI Academy LMS</h1>
-          <p>Loading announcements...</p>
+          <h1 className="text-3xl font-bold text-gray-800 mb-6">Welcome to AOI Academy LMS</h1>
+          <p className="text-lg text-gray-600">Loading upcoming events...</p>
         </div>
       </div>
     );
@@ -47,42 +49,105 @@ export default function Home() {
     <div>
       <Navbar />
       <Carousel />
-      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 py-8">
-
-        {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
-        {announcements.length > 0 && (
-          <div className="w-full max-w-6xl px-4 mb-8">
-            <h2 className="text-xl font-semibold mb-4 text-center">Latest Announcements</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {/* Latest Announcement (First Item) - Spans full width */}
-              {announcements[0] && (
-                <div className="col-span-1 md:col-span-2 lg:col-span-3 bg-blue-100 p-6 rounded-lg shadow-lg border-l-4 border-blue-500">
-                  <h3 className="text-2xl font-bold mb-2 text-blue-800">{announcements[0].title}</h3>
-                  <p className="text-gray-700 mb-2">{announcements[0].content}</p>
-                  <small className="text-gray-500">
-                    {new Date(announcements[0].created_at).toLocaleDateString()}
-                  </small>
-                </div>
-              )}
-              {/* Other Announcements */}
-              {announcements.slice(1).map((ann) => (
-                <div key={ann.id} className="bg-white p-4 rounded-lg shadow hover:shadow-md transition">
-                  <h3 className="text-xl font-semibold mb-2">{ann.title}</h3>
-                  <p className="text-gray-600 mb-2 line-clamp-3">{ann.content}</p>
-                  <small className="text-gray-500">
-                    {new Date(ann.created_at).toLocaleDateString()}
-                  </small>
-                </div>
-              ))}
+      <div className="py-12 bg-gradient-to-b from-gray-50 to-white">
+        <div className="container mx-auto px-4">
+          {error && <p className="text-red-500 text-sm mb-4 text-center">{error}</p>}
+          {announcements.length > 0 ? (
+            <>
+              <h2 className="text-3xl font-bold text-center text-gray-800 mb-8">
+                Upcoming Events & Announcements
+              </h2>
+              <div className="grid grid-cols-1 gap-6 mb-8">
+                {/* Featured First Announcement (Full Width) */}
+                {announcements[0] && (
+                  <div className="relative bg-gradient-to-r from-blue-600 to-indigo-700 text-white rounded-xl shadow-lg overflow-hidden transform hover:scale-105 transition duration-300">
+                    <img
+                      src={announcements[0].image || "https://via.placeholder.com/1200x400/4F46E5/FFFFFF?text=Event+Image"}
+                      alt={announcements[0].title}
+                      className="w-full h-64 object-cover" // Removed opacity-70
+                      onError={(e) => {
+                        e.target.src = "https://via.placeholder.com/1200x400/4F46E5/FFFFFF?text=Event+Image";
+                        console.error(`Featured image load failed for ${announcements[0].title}:`, e);
+                        if (e.target.src.includes("via.placeholder.com")) {
+                          e.target.src = "/images/default.jpg"; // Local fallback if placeholder fails
+                        }
+                      }}
+                    />
+                    <div className="absolute inset-0 p-6 flex flex-col justify-end bg-black bg-opacity-40 rounded-lg">
+                      <h3 className="text-2xl font-semibold mb-2 drop-shadow-lg">{announcements[0].title}</h3>
+                      <p className="text-sm mb-2 drop-shadow-lg">
+                        Event Date: {new Date(announcements[0].event_date).toLocaleDateString('en-US', { 
+                          year: 'numeric', month: 'long', day: 'numeric' 
+                        })}
+                      </p>
+                      <p className="text-xs drop-shadow-lg">
+                        Posted: {new Date(announcements[0].post_date).toLocaleDateString('en-US', { 
+                          month: 'short', day: 'numeric', year: 'numeric' 
+                        })}
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
+              {/* Additional Announcements (3-Column Grid) */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                {announcements.slice(1, 4).map((ann) => (
+                  <div
+                    key={ann.id}
+                    className="bg-white rounded-xl shadow-md hover:shadow-xl transition duration-300 overflow-hidden border border-gray-200"
+                  >
+                    <img
+                      src={ann.image || "https://via.placeholder.com/400x300/6B7280/FFFFFF?text=Event+Image"}
+                      alt={ann.title}
+                      className="w-full h-48 object-cover"
+                      onError={(e) => {
+                        e.target.src = "https://via.placeholder.com/400x300/6B7280/FFFFFF?text=Event+Image";
+                        console.error(`Image load failed for ${ann.title}:`, e);
+                        if (e.target.src.includes("via.placeholder.com")) {
+                          e.target.src = "/images/default.jpg"; // Local fallback
+                        }
+                      }}
+                    />
+                    <div className="p-4">
+                      <h3 className="text-xl font-medium text-gray-800 mb-2 line-clamp-2">{ann.title}</h3>
+                      <p className="text-sm text-gray-600 mb-3 line-clamp-2">{ann.content}</p>
+                      <div className="flex justify-between items-center text-xs text-gray-500">
+                        <span>Event: {new Date(ann.event_date).toLocaleDateString('en-US', { 
+                          month: 'short', day: 'numeric' 
+                        })}</span>
+                        <span>Posted: {new Date(ann.post_date).toLocaleDateString('en-US', { 
+                          month: 'short', day: 'numeric' 
+                        })}</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              {/* View All Button */}
+              <div className="text-center">
+                <Link
+                  to="/announcements"
+                  className="inline-block bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-700 transition duration-300 shadow-lg hover:shadow-xl"
+                >
+                  View All Upcoming Events
+                </Link>
+              </div>
+            </>
+          ) : (
+            <div className="text-center py-12">
+              <h2 className="text-3xl font-bold text-gray-800 mb-4">No Upcoming Events</h2>
+              <p className="text-gray-600 mb-6">Check back soon for new announcements!</p>
+              <Link
+                to="/login"
+                className="inline-block bg-green-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-green-700 transition duration-300"
+              >
+                Log In to View More
+              </Link>
             </div>
-          </div>
-        )}
-        {announcements.length === 0 && !loading && (
-          <div className="text-center text-gray-600">
-            No announcements available at the moment.
-          </div>
-        )}
+          )}
+        </div>
       </div>
+      <Footer />
     </div>
   );
 }

@@ -1,3 +1,4 @@
+// src/pages/AdminDashboard.jsx
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import API from "../services/api";
@@ -14,39 +15,55 @@ export default function AdminDashboard() {
   const [announcements, setAnnouncements] = useState([]);
   const [newCourse, setNewCourse] = useState({ title: "", description: "" });
   const [error, setError] = useState(null);
+
   const navigate = useNavigate();
   const location = useLocation();
-
   const activeTab = location.hash.slice(1) || "users";
 
+  // ---------- LOAD DATA ----------
   useEffect(() => {
     if (!isAuthenticated() || getRole() !== "ADMIN") {
       navigate("/login");
       return;
     }
-    API.get("users/")
-      .then((res) => setUsers(res.data))
-      .catch((err) => setError("Failed to load users."));
-    API.get("courses/")
-      .then((res) => setCourses(res.data))
-      .catch((err) => setError("Failed to load courses."));
-    API.get("modules/")
-      .then((res) => setModules(res.data))
-      .catch((err) => setError("Failed to load modules."));
-    API.get("materials/")
-      .then((res) => setMaterials(res.data))
-      .catch((err) => setError("Failed to load materials."));
-    API.get("enrollments/")
-      .then((res) => setEnrollments(res.data))
-      .catch((err) => setError("Failed to load enrollments."));
-    API.get("progress/")
-      .then((res) => setProgress(res.data))
-      .catch((err) => setError("Failed to load progress."));
-    API.get("announcements/")
-      .then((res) => setAnnouncements(res.data))
-      .catch((err) => setError("Failed to load announcements."));
+
+    const fetchAllData = async () => {
+      try {
+        const [
+          usersRes,
+          coursesRes,
+          modulesRes,
+          materialsRes,
+          enrollmentsRes,
+          progressRes,
+          announcementsRes,
+        ] = await Promise.all([
+          API.get("users/"),
+          API.get("courses/"),
+          API.get("modules/"),
+          API.get("materials/"),
+          API.get("enrollments/"),
+          API.get("progress/"),
+          API.get("announcements/"),
+        ]);
+
+        setUsers(usersRes.data);
+        setCourses(coursesRes.data);
+        setModules(modulesRes.data);
+        setMaterials(materialsRes.data);
+        setEnrollments(enrollmentsRes.data);
+        setProgress(progressRes.data);
+        setAnnouncements(announcementsRes.data);
+      } catch (err) {
+        setError("Failed to load admin dashboard data.");
+        console.error(err);
+      }
+    };
+
+    fetchAllData();
   }, [navigate]);
 
+  // ---------- CREATE COURSE ----------
   const handleCreateCourse = async (e) => {
     e.preventDefault();
     try {
@@ -55,6 +72,7 @@ export default function AdminDashboard() {
       setNewCourse({ title: "", description: "" });
     } catch (err) {
       setError("Failed to create course.");
+      console.error(err);
     }
   };
 
@@ -62,13 +80,16 @@ export default function AdminDashboard() {
     <AdminLayout>
       {error && <p className="text-red-500 mb-4">{error}</p>}
 
+      {/* ---------- USERS ---------- */}
       {activeTab === "users" && (
         <div>
           <h2 className="text-2xl font-bold mb-4">Manage Users</h2>
           <ul className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {users.map((user) => (
               <li key={user.id} className="p-4 bg-white rounded-lg shadow dark:bg-gray-800">
-                <p><strong>{user.username}</strong> ({user.email})</p>
+                <p>
+                  <strong>{user.username}</strong> ({user.email})
+                </p>
                 <p>Role: {user.role}</p>
               </li>
             ))}
@@ -76,9 +97,11 @@ export default function AdminDashboard() {
         </div>
       )}
 
+      {/* ---------- COURSES ---------- */}
       {activeTab === "courses" && (
         <div>
           <h2 className="text-2xl font-bold mb-4">Manage Courses</h2>
+
           <form onSubmit={handleCreateCourse} className="mb-6 space-y-4 max-w-md">
             <input
               type="text"
@@ -94,10 +117,14 @@ export default function AdminDashboard() {
               placeholder="Description"
               className="w-full p-3 border rounded-lg"
             />
-            <button type="submit" className="py-2 px-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+            <button
+              type="submit"
+              className="py-2 px-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            >
               Create Course
             </button>
           </form>
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {courses.map((course) => (
               <div key={course.id} className="p-4 bg-white rounded-lg shadow dark:bg-gray-800">
@@ -109,6 +136,7 @@ export default function AdminDashboard() {
         </div>
       )}
 
+      {/* ---------- MODULES ---------- */}
       {activeTab === "modules" && (
         <div>
           <h2 className="text-2xl font-bold mb-4">Manage Modules</h2>
@@ -116,13 +144,14 @@ export default function AdminDashboard() {
             {modules.map((module) => (
               <div key={module.id} className="p-4 bg-white rounded-lg shadow dark:bg-gray-800">
                 <h3 className="text-xl font-semibold">{module.title}</h3>
-                <p>Course: {module.course.title}</p>
+                <p>Course: {module.course?.title || "N/A"}</p>
               </div>
             ))}
           </div>
         </div>
       )}
 
+      {/* ---------- MATERIALS ---------- */}
       {activeTab === "materials" && (
         <div>
           <h2 className="text-2xl font-bold mb-4">Manage Materials</h2>
@@ -130,39 +159,47 @@ export default function AdminDashboard() {
             {materials.map((material) => (
               <div key={material.id} className="p-4 bg-white rounded-lg shadow dark:bg-gray-800">
                 <h3 className="text-xl font-semibold">{material.title}</h3>
-                <p>Module: {material.module.title}</p>
+                <p>Module: {material.module?.title || "N/A"}</p>
               </div>
             ))}
           </div>
         </div>
       )}
 
+      {/* ---------- ENROLLMENTS ---------- */}
       {activeTab === "enrollments" && (
         <div>
           <h2 className="text-2xl font-bold mb-4">Manage Enrollments</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {enrollments.map((enrollment) => (
-              <div key={enrollment.id} className="p-4 bg-white rounded-lg shadow dark:bg-gray-800">
-                <p>{enrollment.student.username} - {enrollment.course_title}</p>
+            {enrollments.map((enroll) => (
+              <div key={enroll.id} className="p-4 bg-white rounded-lg shadow dark:bg-gray-800">
+                <p>
+                  {enroll.student?.username || "N/A"} - {enroll.course_title || "N/A"}
+                </p>
               </div>
             ))}
           </div>
         </div>
       )}
 
+      {/* ---------- PROGRESS ---------- */}
       {activeTab === "progress" && (
         <div>
           <h2 className="text-2xl font-bold mb-4">Student Progress</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {progress.map((p) => (
               <div key={p.id} className="p-4 bg-white rounded-lg shadow dark:bg-gray-800">
-                <p>{p.student.username} - {p.module_title}: {p.completed ? "Completed" : "In Progress"}</p>
+                <p>
+                  {p.student?.username || "N/A"} - {p.module_title || "N/A"}:{" "}
+                  {p.completed ? "Completed" : "In Progress"}
+                </p>
               </div>
             ))}
           </div>
         </div>
       )}
 
+      {/* ---------- ANNOUNCEMENTS ---------- */}
       {activeTab === "announcements" && (
         <div>
           <h2 className="text-2xl font-bold mb-4">Manage Announcements</h2>
