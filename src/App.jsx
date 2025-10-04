@@ -13,6 +13,7 @@ import DashboardLayout from "./layouts/DashboardLayout";
 import MyCourses from "./pages/MyCourses";
 import CreateCourse from "./pages/CreateCourse";
 import ChatWidget from "./components/messaging/ChatWidget";
+import ForgotPassword from "./pages/ForgotPassword";
 import { useAuth } from "./context/AuthContext";
 
 export default function App() {
@@ -25,6 +26,7 @@ export default function App() {
         {/* Public routes */}
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/forgotpassword" element={<ForgotPassword />}/>
         <Route path="/editprofile" element={<EditProfile />} />
         <Route path="/faqs" element={<Faq />} />
 
