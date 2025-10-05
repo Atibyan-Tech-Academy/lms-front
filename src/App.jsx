@@ -15,6 +15,7 @@ import CreateCourse from "./pages/CreateCourse";
 import ChatWidget from "./components/messaging/ChatWidget";
 import ForgotPassword from "./pages/ForgotPassword";
 import { useAuth } from "./context/AuthContext";
+import SupportPage from "./components/supportpage"; // ✅ New import
 
 export default function App() {
   const { user } = useAuth();
@@ -29,6 +30,8 @@ export default function App() {
         <Route path="/forgotpassword" element={<ForgotPassword />}/>
         <Route path="/editprofile" element={<EditProfile />} />
         <Route path="/faqs" element={<Faq />} />
+        <Route path="/support" element={<SupportPage />} /> {/* ✅ Added */}
+
 
         {/* Student routes */}
         <Route

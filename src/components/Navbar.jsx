@@ -68,7 +68,7 @@ const Navbar = () => {
               </span>
               <button
                 onClick={handleLogout}
-                className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                className="px-6 py-3 bg-green-800 text-white rounded-lg hover:bg-green-600"
               >
                 Logout
               </button>
@@ -76,7 +76,7 @@ const Navbar = () => {
           ) : (
             <Link
               to="/login"
-              className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              className="px-6 py-3 bg-green-800 text-white rounded-lg hover:bg-green-600"
             >
               Login
             </Link>

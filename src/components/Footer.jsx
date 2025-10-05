@@ -1,5 +1,6 @@
 // src/components/Footer.jsx
 import React from "react";
+import { Link } from "react-router-dom";
 import { FaFacebookF, FaTwitter, FaInstagram, FaLinkedinIn } from "react-icons/fa";
 
 export default function Footer() {
@@ -30,12 +31,15 @@ export default function Footer() {
               </a>
             </li>
             <li>
-              <a
-                href="/faqs"
-                className="hover:text-white transition-colors"
-              >
+              <a href="/faqs" className="hover:text-white transition-colors">
                 FAQs
               </a>
+            </li>
+            <li>
+              {/* ✅ New Technical Support link */}
+              <Link to="/support" className="hover:text-white transition-colors">
+                Technical Support
+              </Link>
             </li>
           </ul>
         </div>
@@ -43,19 +47,31 @@ export default function Footer() {
         {/* Third Column - Contact */}
         <div>
           <h3 className="text-lg font-semibold text-white mb-3">Information</h3>
-          <p className="text-sm"> <a href="https://www.google.com/maps/dir//VANTAGE+ESTATE,+off+Jibowu+Road,+Ifako-Ijaiye,+Ojokoro+101232,+Lagos/@6.6634794,3.3086788,5621m/data=!3m2!1e3!4b1!4m8!4m7!1m0!1m5!1m1!1s0x103b97a4ef27935d:0x981ed21351f05f48!2m2!1d3.301566!2d6.6614741?entry=ttu&g_ep=EgoyMDI1MTAwMS4wIKXMDSoASAFQAw%3D%3D"> <strong>Address</strong>: VANTAGE ESTATE, off Jibowu Road, Ifako-Ijaiye, Ojokoro 101232, Lagos</a></p>
-          <p className="text-sm mt-2"> <a href="tel:+2347045596525"> <strong>Phone</strong>: 0704 559 6525</a></p>
-                    <p className="text-sm mt-2">
+          <p className="text-sm">
+            <a
+              href="https://www.google.com/maps/dir//VANTAGE+ESTATE,+off+Jibowu+Road,+Ifako-Ijaiye,+Ojokoro+101232,+Lagos/@6.6634794,3.3086788,5621m/data=!3m2!1e3!4b1!4m8!4m7!1m0!1m5!1m1!1s0x103b97a4ef27935d:0x981ed21351f05f48!2m2!1d3.301566!2d6.6614741?entry=ttu&g_ep=EgoyMDI1MTAwMS4wIKXMDSoASAFQAw%3D%3D"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <strong>Address</strong>: VANTAGE ESTATE, off Jibowu Road, Ifako-Ijaiye, Ojokoro 101232, Lagos
+            </a>
+          </p>
+
+          <p className="text-sm mt-2">
+            <a href="tel:+2347045596525">
+              <strong>Phone</strong>: 0704 559 6525
+            </a>
+          </p>
+
+          <p className="text-sm mt-2">
             <a
               href="https://mail.google.com/mail/?view=cm&fs=1&to=info@aoitech.ng"
               target="_blank"
               rel="noopener noreferrer"
             >
-              <strong>Email</strong>
-              : info@aoitech.ng
+              <strong>Email</strong>: info@aoitech.ng
             </a>
           </p>
-
 
           <div className="flex gap-5 space-x-4 mt-4">
             <a

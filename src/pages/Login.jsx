@@ -117,7 +117,7 @@ export default function Login() {
             type="button"
             onClick={handleSubmit}
             disabled={loading}
-            className="w-full py-3 mt-3 bg-green-800 text-white rounded-lg hover:bg-green-700 transition dark:bg-green-900 dark:hover:bg-green-800"
+            className="w-full py-3 mt-3 bg-green-800 text-white rounded-lg hover:bg-green-600 transition dark:bg-green-900 dark:hover:bg-green-800"
           >
             {loading ? "Logging in..." : "Login"}
           </button>
