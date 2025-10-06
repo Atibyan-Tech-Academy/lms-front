@@ -14,6 +14,7 @@ const API = axios.create({
 // ---------- PUBLIC ENDPOINTS ----------
 const PUBLIC_ENDPOINTS = [
   "accounts/login",
+  "accounts/refresh",  // Fix: Treat refresh as public to avoid recursion
   "accounts/get-csrf-token",
   "public-announcements",
 ];
@@ -39,11 +40,26 @@ API.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
     const isPublic = PUBLIC_ENDPOINTS.some((endpoint) =>
-      originalRequest.url.includes(endpoint)
+      originalRequest?.url?.includes(endpoint)
     );
 
-    if (error.response?.status === 401 && !originalRequest._retry && !isPublic) {
+    // Skip retry if it's a public endpoint or already retrying a refresh
+    if (
+      error.response?.status === 401 &&
+      !originalRequest._retry &&
+      !isPublic &&
+      !originalRequest.url?.includes("accounts/refresh")
+    ) {
       originalRequest._retry = true;
+
+      // Optional: Add max retries to prevent floods (e.g., 1 retry max)
+      if (originalRequest._retryCount >= 1) {
+        console.warn("Max refresh retries exceeded, logging out.");
+        logout();
+        return Promise.reject(error);
+      }
+      originalRequest._retryCount = (originalRequest._retryCount || 0) + 1;
+
       const refreshToken = getRefreshToken();
 
       if (refreshToken) {
@@ -153,14 +169,15 @@ export const updateProfile = (data) => {
   return API.put("editprofile/profile/", data, config);
 };
 
+// ---------- PASSWORD RESET (Fixed: Use API instead of lowercase 'api') ----------
 export const sendResetCode = (data, csrfToken) =>
-  api.post("/api/password-reset/", data, { headers: { "X-CSRFToken": csrfToken } });
+  API.post("password-reset/", data, { headers: { "X-CSRFToken": csrfToken } });
 
 export const verifyResetCode = (data, csrfToken) =>
-  api.post("/api/password-reset-verify/", data, { headers: { "X-CSRFToken": csrfToken } });
+  API.post("password-reset-verify/", data, { headers: { "X-CSRFToken": csrfToken } });
 
 export const resetPassword = (data, csrfToken) =>
-  api.post("/api/password-reset-confirm/", data, { headers: { "X-CSRFToken": csrfToken } });
+  API.post("password-reset-confirm/", data, { headers: { "X-CSRFToken": csrfToken } });
 
 // Export API as both default & named
 export default API;
