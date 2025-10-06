@@ -96,8 +96,8 @@ export default function ForgotPassword() {
   if (step === "email") {
     formContent = (
       <form onSubmit={handleSendCode} className="space-y-5">
-        <div>
-          <label className="block text-sm mb-1 text-gray-700 dark:text-gray-300">Email</label>
+        <div className="mb-5">
+          <label className="block text-sm mb-5 text-gray-700 dark:text-gray-300">Email</label>
           <input
             type="email"
             value={email}
