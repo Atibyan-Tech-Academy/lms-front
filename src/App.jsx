@@ -15,7 +15,7 @@ import CreateCourse from "./pages/CreateCourse";
 import ChatWidget from "./components/messaging/ChatWidget";
 import ForgotPassword from "./pages/ForgotPassword";
 import { useAuth } from "./context/AuthContext";
-import SupportPage from "./components/supportpage"; // ✅ New import
+import SupportPage from "./components/supportpage"; // ✅ Support page import
 
 export default function App() {
   const { user } = useAuth();
@@ -24,16 +24,15 @@ export default function App() {
   return (
     <>
       <Routes>
-        {/* Public routes */}
+        {/* ---------- PUBLIC ROUTES ---------- */}
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
-        <Route path="/forgotpassword" element={<ForgotPassword />}/>
+        <Route path="/forgotpassword" element={<ForgotPassword />} />
         <Route path="/editprofile" element={<EditProfile />} />
         <Route path="/faqs" element={<Faq />} />
-        <Route path="/support" element={<SupportPage />} /> {/* ✅ Added */}
+        <Route path="/support" element={<SupportPage />} />
 
-
-        {/* Student routes */}
+        {/* ---------- STUDENT ROUTES ---------- */}
         <Route
           path="/student/dashboard"
           element={
@@ -75,7 +74,7 @@ export default function App() {
           }
         />
 
-        {/* Lecturer routes */}
+        {/* ---------- INSTRUCTOR ROUTES ---------- */}
         <Route
           path="/instructor/dashboard"
           element={
@@ -107,20 +106,18 @@ export default function App() {
           }
         />
 
-        {/* Admin routes */}
+        {/* ---------- ADMIN ROUTE (FIXED DUPLICATION) ---------- */}
         <Route
           path="/admin/dashboard"
           element={
             <PrivateRoute roleCheck={["ADMIN"]}>
-              <DashboardLayout>
-                <AdminDashboard />
-              </DashboardLayout>
+              <AdminDashboard /> {/* ✅ Removed DashboardLayout wrapper */}
             </PrivateRoute>
           }
         />
       </Routes>
 
-      {/* Chat widget for logged-in users */}
+      {/* ---------- CHAT WIDGET ---------- */}
       {user && ["STUDENT", "LECTURER", "ADMIN"].includes(user.role) && (
         <ChatWidget token={token} user={user} />
       )}
