@@ -1,4 +1,3 @@
-// src/pages/StudentDashboard.jsx
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
@@ -11,7 +10,6 @@ import {
   getAnnouncements,
 } from "../services/api";
 import { isAuthenticated, getRole } from "../services/auth";
-import StudentLayout from "../layouts/StudentLayout";
 import { useAuth } from "../context/AuthContext";
 
 export default function StudentDashboard() {
@@ -49,7 +47,10 @@ export default function StudentDashboard() {
       setAnnouncements(announcementsRes.data || []);
       if (profileRes.data) setUser(profileRes.data);
     } catch (err) {
-      setError("Failed to load dashboard data: " + (err.response?.data?.detail || err.message));
+      setError(
+        "Failed to load dashboard data: " +
+          (err.response?.data?.detail || err.message)
+      );
     }
   };
 
@@ -66,13 +67,17 @@ export default function StudentDashboard() {
           const prog = (modulesRes.data || []).reduce(
             (acc, m) => ({
               ...acc,
-              [m.id]: progressRes.data.find((p) => p.module === m.id)?.completed || false,
+              [m.id]:
+                progressRes.data.find((p) => p.module === m.id)?.completed ||
+                false,
             }),
             {}
           );
           setProgress(prog);
         })
-        .catch((err) => setError("Failed to load course details: " + err.message));
+        .catch((err) =>
+          setError("Failed to load course details: " + err.message)
+        );
     }
   }, [selectedCourse]);
 
@@ -86,11 +91,9 @@ export default function StudentDashboard() {
   };
 
   return (
-    <StudentLayout>
+    <div>
       {error && <p className="text-red-500 mb-4">{error}</p>}
-      <div style={{ background: "linear-gradient(to right, #04CE65, #026833)", width: "100%", textAlign: "center", padding: "20px", color: "white" }}>
-        <h1 className="text-2xl font-bold">Student Dashboard</h1>
-      </div>
+
       {activeTab === "courses" && !selectedCourse && (
         <div>
           <h2 className="text-2xl font-bold mb-4">My Courses</h2>
@@ -102,22 +105,30 @@ export default function StudentDashboard() {
                 onClick={() => setSelectedCourse(course)}
               >
                 <h3 className="text-xl font-semibold">{course.title}</h3>
-                <p className="text-gray-600 dark:text-gray-400">{course.description}</p>
-                <div className="w-full bg-gray-200 rounded-full h-2.5 mt-2 dark:bg-gray-700">
-                  <div className="bg-blue-600 h-2.5 rounded-full" style={{ width: "0%" }}></div>
-                </div>
+                <p className="text-gray-600 dark:text-gray-400">
+                  {course.description}
+                </p>
               </div>
             ))}
           </div>
         </div>
       )}
+
       {activeTab === "courses" && selectedCourse && (
         <div>
-          <button onClick={() => setSelectedCourse(null)} className="mb-4 text-blue-600 hover:underline dark:text-blue-400">← Back to Courses</button>
+          <button
+            onClick={() => setSelectedCourse(null)}
+            className="mb-4 text-blue-600 hover:underline dark:text-blue-400"
+          >
+            ← Back to Courses
+          </button>
           <h2 className="text-2xl font-bold mb-4">{selectedCourse.title}</h2>
           <h3 className="text-lg font-semibold mb-2">Modules</h3>
           {modules.map((module) => (
-            <div key={module.id} className="mb-4 p-4 bg-white rounded-lg shadow dark:bg-gray-800">
+            <div
+              key={module.id}
+              className="mb-4 p-4 bg-white rounded-lg shadow dark:bg-gray-800"
+            >
               <h4 className="font-semibold text-lg">{module.title}</h4>
               <button
                 onClick={() => handleMarkAsComplete(module.id)}
@@ -128,6 +139,7 @@ export default function StudentDashboard() {
               </button>
             </div>
           ))}
+
           <h3 className="text-lg font-semibold mt-6 mb-2">Materials</h3>
           {materials.map((material) => (
             <a
@@ -137,31 +149,54 @@ export default function StudentDashboard() {
               target="_blank"
               rel="noopener noreferrer"
             >
-              {material.title} ({material.file ? "file" : material.video ? "video" : "link"})
+              {material.title}
             </a>
           ))}
         </div>
       )}
+
       {activeTab === "announcements" && (
         <div>
           <h2 className="text-2xl font-bold mb-4">Announcements</h2>
           {announcements.map((ann) => (
-            <div key={ann.id} className="mb-4 p-4 bg-white rounded-lg shadow dark:bg-gray-800">
+            <div
+              key={ann.id}
+              className="mb-4 p-4 bg-white rounded-lg shadow dark:bg-gray-800"
+            >
               <h3 className="font-semibold">{ann.title}</h3>
-              <p className="text-gray-600 dark:text-gray-400">{ann.content}</p>
-              <small className="text-gray-500">{new Date(ann.created_at).toLocaleDateString()}</small>
+              <p className="text-gray-600 dark:text-gray-400">
+                {ann.content}
+              </p>
+              <small className="text-gray-500">
+                {new Date(ann.created_at).toLocaleDateString()}
+              </small>
             </div>
           ))}
         </div>
       )}
+
       {activeTab === "profile" && (
         <div>
           <h2 className="text-2xl font-bold mb-4">Profile</h2>
-          <p><strong>Name:</strong> {profile.first_name && profile.last_name ? `${profile.first_name} ${profile.last_name}` : "Loading..."}</p>
-          <p><strong>Email:</strong> {profile.email || "Loading..."}</p>
-          <img src={profile.profile_image || "/docs/images/people/profile-picture-3.jpg"} alt="Avatar" className="w-24 h-24 rounded-full mt-4" />
+          <p>
+            <strong>Name:</strong>{" "}
+            {profile.first_name && profile.last_name
+              ? `${profile.first_name} ${profile.last_name}`
+              : "Loading..."}
+          </p>
+          <p>
+            <strong>Email:</strong> {profile.email || "Loading..."}
+          </p>
+          <img
+            src={
+              profile.profile_image ||
+              "/docs/images/people/profile-picture-3.jpg"
+            }
+            alt="Avatar"
+            className="w-24 h-24 rounded-full mt-4"
+          />
         </div>
       )}
-    </StudentLayout>
+    </div>
   );
 }
