@@ -1,13 +1,13 @@
+// Corrected StudentDashboard.jsx
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
   getEnrollments,
-  getCourseModules,
-  getCourseMaterials,
-  getCourseProgress,
-  markAsComplete,
+  getCourse,
+  getProgress,
   getProfile,
   getAnnouncements,
+  markAsComplete,
 } from "../services/api";
 import { isAuthenticated, getRole } from "../services/auth";
 import { useAuth } from "../context/AuthContext";
@@ -18,7 +18,7 @@ export default function StudentDashboard() {
   const [selectedCourse, setSelectedCourse] = useState(null);
   const [modules, setModules] = useState([]);
   const [materials, setMaterials] = useState([]);
-  const [progress, setProgress] = useState({});
+  const [allProgress, setAllProgress] = useState([]);  // Fetch all once
   const [announcements, setAnnouncements] = useState([]);
   const [profile, setProfile] = useState(user || {});
   const [error, setError] = useState(null);
@@ -37,14 +37,17 @@ export default function StudentDashboard() {
 
   const fetchInitialData = async () => {
     try {
-      const [coursesRes, profileRes, announcementsRes] = await Promise.all([
+      const [enrollmentsRes, profileRes, announcementsRes, progressRes] = await Promise.all([
         getEnrollments(),
         getProfile(),
         getAnnouncements(),
+        getProgress(),  // Fetch all progress here
       ]);
-      setCourses(coursesRes.data || []);
+      // Enrollments include nested course data (title, desc, modules, materials)
+      setCourses(enrollmentsRes.data.map(e => e.course) || []);
       setProfile(profileRes.data || {});
       setAnnouncements(announcementsRes.data || []);
+      setAllProgress(progressRes.data || []);
       if (profileRes.data) setUser(profileRes.data);
     } catch (err) {
       setError(
@@ -56,35 +59,27 @@ export default function StudentDashboard() {
 
   useEffect(() => {
     if (selectedCourse) {
-      Promise.all([
-        getCourseModules(selectedCourse.id),
-        getCourseMaterials(selectedCourse.id),
-        getCourseProgress(selectedCourse.id),
-      ])
-        .then(([modulesRes, materialsRes, progressRes]) => {
-          setModules(modulesRes.data || []);
-          setMaterials(materialsRes.data || []);
-          const prog = (modulesRes.data || []).reduce(
-            (acc, m) => ({
-              ...acc,
-              [m.id]:
-                progressRes.data.find((p) => p.module === m.id)?.completed ||
-                false,
-            }),
-            {}
-          );
-          setProgress(prog);
+      // Fetch full course details (includes modules with materials)
+      getCourse(selectedCourse.id)
+        .then(res => {
+          setModules(res.data.modules || []);
+          setMaterials(res.data.modules.flatMap(m => m.materials || []) || []);
         })
-        .catch((err) =>
-          setError("Failed to load course details: " + err.message)
-        );
+        .catch(err => setError("Failed to load course details: " + err.message));
     }
   }, [selectedCourse]);
 
+  // Helper to get progress for a module
+  const getModuleProgress = (moduleId) => {
+    const progItem = allProgress.find(p => p.module === moduleId);
+    return progItem ? progItem.completed : false;
+  };
+
   const handleMarkAsComplete = async (moduleId) => {
     try {
-      await markAsComplete(moduleId);
-      setProgress((prev) => ({ ...prev, [moduleId]: true }));
+      const res = await markAsComplete(moduleId);
+      // Update local allProgress
+      setAllProgress(prev => prev.map(p => p.module === moduleId ? res.data : p));
     } catch (err) {
       setError("Failed to update progress: " + err.message);
     }
@@ -133,9 +128,9 @@ export default function StudentDashboard() {
               <button
                 onClick={() => handleMarkAsComplete(module.id)}
                 className="mt-2 py-1 px-3 bg-green-600 text-white rounded-lg hover:bg-green-700"
-                disabled={progress[module.id]}
+                disabled={getModuleProgress(module.id)}
               >
-                {progress[module.id] ? "Completed" : "Mark as Complete"}
+                {getModuleProgress(module.id) ? "Completed" : "Mark as Complete"}
               </button>
             </div>
           ))}

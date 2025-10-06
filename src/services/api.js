@@ -1,4 +1,4 @@
-// src/services/api.js
+// Corrected api.js
 import axios from "axios";
 import { getAccessToken, getRefreshToken, saveTokens, logout } from "./auth";
 
@@ -116,48 +116,48 @@ export const refresh = (refreshToken) => API.post("accounts/refresh/", { refresh
 export const getPublicAnnouncements = () => API.get("public-announcements/");
 
 // ---------- COURSES ----------
-export const getAllCourses = () => API.get("courses/");
-export const getCourse = (id) => API.get(`courses/${id}/`);
-export const createCourse = (data) => API.post("courses/", data);
-export const updateCourse = (id, data) => API.put(`courses/${id}/`, data);
-export const deleteCourse = (id) => API.delete(`courses/${id}/`);
-export const getCourseModules = (courseId) => API.get(`modules/?course=${courseId}`);
-export const getCourseMaterials = (courseId) => API.get(`materials/?course=${courseId}`);
+export const getAllCourses = () => API.get("courses/courses/");
+export const getCourse = (id) => API.get(`courses/courses/${id}/`);
+export const createCourse = (data) => API.post("courses/courses/", data);
+export const updateCourse = (id, data) => API.put(`courses/courses/${id}/`, data);
+export const deleteCourse = (id) => API.delete(`courses/courses/${id}/`);
+export const getCourseModules = (courseId) => API.get(`courses/modules/?course=${courseId}`);
+export const getCourseMaterials = (courseId) => API.get(`courses/materials/?course=${courseId}`);
 
 // ---------- MODULES ----------
-export const getAllModules = () => API.get("modules/");
-export const getModule = (id) => API.get(`modules/${id}/`);
-export const createModule = (data) => API.post("modules/", data);
-export const updateModule = (id, data) => API.put(`modules/${id}/`, data);
-export const deleteModule = (id) => API.delete(`modules/${id}/`);
+export const getAllModules = () => API.get("courses/modules/");
+export const getModule = (id) => API.get(`courses/modules/${id}/`);
+export const createModule = (data) => API.post("courses/modules/", data);
+export const updateModule = (id, data) => API.put(`courses/modules/${id}/`, data);
+export const deleteModule = (id) => API.delete(`courses/modules/${id}/`);
 
 // ---------- MATERIALS ----------
-export const getAllMaterials = () => API.get("materials/");
-export const getMaterial = (id) => API.get(`materials/${id}/`);
+export const getAllMaterials = () => API.get("courses/materials/");
+export const getMaterial = (id) => API.get(`courses/materials/${id}/`);
 export const createMaterial = (data) =>
-  API.post("materials/", data, { headers: { "Content-Type": "multipart/form-data" } });
+  API.post("courses/materials/", data, { headers: { "Content-Type": "multipart/form-data" } });
 export const updateMaterial = (id, data) =>
-  API.put(`materials/${id}/`, data, { headers: { "Content-Type": "multipart/form-data" } });
-export const deleteMaterial = (id) => API.delete(`materials/${id}/`);
+  API.put(`courses/materials/${id}/`, data, { headers: { "Content-Type": "multipart/form-data" } });
+export const deleteMaterial = (id) => API.delete(`courses/materials/${id}/`);
 
 // ---------- ENROLLMENTS ----------
-export const getEnrollments = () => API.get("enrollments/");
-export const enrollStudent = (data) => API.post("enrollments/", data);
-export const getEnrolledCourses = () => API.get("enrollments/");
+export const getEnrollments = () => API.get("courses/enrollments/");
+export const enrollStudent = (data) => API.post("courses/enrollments/", data);
+export const getEnrolledCourses = () => API.get("courses/enrollments/");
 
 // ---------- STUDENT PROGRESS ----------
-export const getProgress = () => API.get("progress/");
-export const getCourseProgress = (courseId) => API.get(`progress/?course=${courseId}`);
-export const markAsComplete = (moduleId) => API.post("progress/", { module: moduleId, completed: true });
+export const getProgress = () => API.get("courses/progress/");
+export const getCourseProgress = (courseId) => API.get(`courses/progress/?module__course=${courseId}`);
+export const markAsComplete = (moduleId) => API.post("courses/progress/", { module: moduleId, completed: true });
 
 // ---------- ANNOUNCEMENTS ----------
-export const getAnnouncements = () => API.get("announcements/");
-export const createAnnouncement = (data) => API.post("announcements/", data);
-export const updateAnnouncement = (id, data) => API.put(`announcements/${id}/`, data);
-export const deleteAnnouncement = (id) => API.delete(`announcements/${id}/`);
+export const getAnnouncements = () => API.get("courses/announcements/");
+export const createAnnouncement = (data) => API.post("courses/announcements/", data);
+export const updateAnnouncement = (id, data) => API.put(`courses/announcements/${id}/`, data);
+export const deleteAnnouncement = (id) => API.delete(`courses/announcements/${id}/`);
 
 // ---------- INSTRUCTOR DASHBOARD ----------
-export const getInstructorDashboard = () => API.get("instructor/dashboard/");
+export const getInstructorDashboard = () => API.get("courses/instructor/dashboard/");
 
 // ---------- PROFILE ----------
 export const getProfile = () => API.get("editprofile/profile/");
