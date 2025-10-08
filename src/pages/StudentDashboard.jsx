@@ -1,4 +1,3 @@
-// Corrected StudentDashboard.jsx
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
@@ -12,20 +11,20 @@ import {
 import { isAuthenticated, getRole } from "../services/auth";
 import { useAuth } from "../context/AuthContext";
 
-export default function StudentDashboard() {
-  const { user, setUser } = useAuth();
+export default function StudentDashboard({ tab }) {
+  const { user, updateUser } = useAuth();
   const [courses, setCourses] = useState([]);
   const [selectedCourse, setSelectedCourse] = useState(null);
   const [modules, setModules] = useState([]);
   const [materials, setMaterials] = useState([]);
-  const [allProgress, setAllProgress] = useState([]);  // Fetch all once
+  const [allProgress, setAllProgress] = useState([]);
   const [announcements, setAnnouncements] = useState([]);
   const [profile, setProfile] = useState(user || {});
   const [error, setError] = useState(null);
 
   const navigate = useNavigate();
   const location = useLocation();
-  const activeTab = location.hash.slice(1) || "courses";
+  const activeTab = tab || location.hash.slice(1) || "courses";
 
   useEffect(() => {
     if (!isAuthenticated() || getRole() !== "STUDENT") {
@@ -41,14 +40,15 @@ export default function StudentDashboard() {
         getEnrollments(),
         getProfile(),
         getAnnouncements(),
-        getProgress(),  // Fetch all progress here
+        getProgress(),
       ]);
-      // Enrollments include nested course data (title, desc, modules, materials)
       setCourses(enrollmentsRes.data.map(e => e.course) || []);
       setProfile(profileRes.data || {});
       setAnnouncements(announcementsRes.data || []);
       setAllProgress(progressRes.data || []);
-      if (profileRes.data) setUser(profileRes.data);
+      if (profileRes.data && typeof updateUser === "function") {
+        updateUser(profileRes.data);
+      }
     } catch (err) {
       setError(
         "Failed to load dashboard data: " +
@@ -59,7 +59,6 @@ export default function StudentDashboard() {
 
   useEffect(() => {
     if (selectedCourse) {
-      // Fetch full course details (includes modules with materials)
       getCourse(selectedCourse.id)
         .then(res => {
           setModules(res.data.modules || []);
@@ -69,7 +68,6 @@ export default function StudentDashboard() {
     }
   }, [selectedCourse]);
 
-  // Helper to get progress for a module
   const getModuleProgress = (moduleId) => {
     const progItem = allProgress.find(p => p.module === moduleId);
     return progItem ? progItem.completed : false;
@@ -78,7 +76,6 @@ export default function StudentDashboard() {
   const handleMarkAsComplete = async (moduleId) => {
     try {
       const res = await markAsComplete(moduleId);
-      // Update local allProgress
       setAllProgress(prev => prev.map(p => p.module === moduleId ? res.data : p));
     } catch (err) {
       setError("Failed to update progress: " + err.message);
