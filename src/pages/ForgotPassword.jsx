@@ -1,11 +1,13 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { sendResetCode, verifyResetCode, resetPassword, getCsrfToken } from "../services/api";
-import logoLight from "../assets/Aoi2-light.png";
-import image1 from "../assets/image1.jpg"; // Add a fallback image
+import logoLight from "../assets/Aoi2-light.png"; // Update path if needed
+import image1 from "../assets/image1.jpg"; // Fallback image
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 export default function ForgotPassword() {
-  const [step, setStep] = useState("email"); // Steps: 'email' -> 'verify' -> 'reset'
+  const [step, setStep] = useState("email");
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -16,7 +18,7 @@ export default function ForgotPassword() {
 
   const handleImageError = (e) => {
     console.error("Logo image load failed:", { url: e.target.src });
-    e.target.src = placeholderImage; // Fallback to placeholder
+    e.target.src = image1;
   };
 
   const handleSendCode = async (e) => {
@@ -29,13 +31,13 @@ export default function ForgotPassword() {
       const csrfToken = await getCsrfToken();
       await sendResetCode({ email }, csrfToken);
       console.log("Verification code sent, moving to verify step");
+      toast.success("Verification code sent to your email!");
       setStep("verify");
     } catch (err) {
       console.error("Send code error:", err);
-      setError(
-        "Error sending verification code: " +
-          (err.response?.data?.detail || err.response?.data?.non_field_errors?.[0] || err.message)
-      );
+      const errorMsg = err.response?.data?.email?.[0] || err.response?.data?.detail || "Failed to send verification code.";
+      toast.error(errorMsg);
+      setError(errorMsg);
     } finally {
       setLoading(false);
     }
@@ -51,13 +53,13 @@ export default function ForgotPassword() {
       const csrfToken = await getCsrfToken();
       await verifyResetCode({ email, code }, csrfToken);
       console.log("Code verified, moving to reset step");
+      toast.success("Code verified successfully!");
       setStep("reset");
     } catch (err) {
       console.error("Verify code error:", err);
-      setError(
-        "Invalid verification code: " +
-          (err.response?.data?.detail || err.response?.data?.non_field_errors?.[0] || err.message)
-      );
+      const errorMsg = err.response?.data?.detail || "Invalid or expired verification code.";
+      toast.error(errorMsg);
+      setError(errorMsg);
     } finally {
       setLoading(false);
     }
@@ -66,8 +68,15 @@ export default function ForgotPassword() {
   const handleResetPassword = async (e) => {
     e.preventDefault();
     if (newPassword !== confirmPassword) {
-      setError("Passwords do not match.");
-      console.log("Password mismatch");
+      const mismatchMsg = "Passwords do not match.";
+      toast.error(mismatchMsg);
+      setError(mismatchMsg);
+      return;
+    }
+    if (newPassword.length < 8) {
+      const lengthMsg = "Password must be at least 8 characters long.";
+      toast.error(lengthMsg);
+      setError(lengthMsg);
       return;
     }
     setError(null);
@@ -78,14 +87,13 @@ export default function ForgotPassword() {
       const csrfToken = await getCsrfToken();
       await resetPassword({ email, code, new_password: newPassword }, csrfToken);
       console.log("Password reset successful");
-      alert("Password reset successful. Please log in with your new password.");
-      navigate("/login");
+      toast.success("Password reset successful. Redirecting to login...");
+      setTimeout(() => navigate("/login"), 2000);
     } catch (err) {
       console.error("Reset password error:", err);
-      setError(
-        "Error resetting password: " +
-          (err.response?.data?.detail || err.response?.data?.non_field_errors?.[0] || err.message)
-      );
+      const errorMsg = err.response?.data?.detail || "Failed to reset password.";
+      toast.error(errorMsg);
+      setError(errorMsg);
     } finally {
       setLoading(false);
     }
@@ -96,8 +104,8 @@ export default function ForgotPassword() {
   if (step === "email") {
     formContent = (
       <form onSubmit={handleSendCode} className="space-y-5">
-        <div className="mb-5">
-          <label className="block text-sm mb-5 text-gray-700 dark:text-gray-300">Email</label>
+        <div className="mb">
+          <label className="block text-sm mb-1 text-gray-700 dark:text-gray-300">Email</label>
           <input
             type="email"
             value={email}
@@ -177,7 +185,6 @@ export default function ForgotPassword() {
 
   return (
     <div className="flex h-screen m-3">
-      {/* Left side form */}
       <div className="w-1/2 flex flex-col justify-center px-16 bg-gray-50 dark:bg-gray-800">
         <h2 className="text-3xl font-bold mb-6 text-gray-800 dark:text-gray-200">Reset Password</h2>
         {error && <p className="text-red-500 dark:text-red-400 text-sm mb-3">{error}</p>}
@@ -186,8 +193,6 @@ export default function ForgotPassword() {
           <Link to="/login" className="text-blue-500 hover:underline">Back to Login</Link>
         </p>
       </div>
-
-      {/* Right side image */}
       <div className="w-1/2 bg-blue-900 flex items-center justify-center bg-image">
         <div className="text-center text-white px-6">
           <img
@@ -200,6 +205,7 @@ export default function ForgotPassword() {
           <p className="mt-2 text-lg">Transform Your Career with At-Tibyan Tech Academy</p>
         </div>
       </div>
+      <ToastContainer />
     </div>
   );
 }
