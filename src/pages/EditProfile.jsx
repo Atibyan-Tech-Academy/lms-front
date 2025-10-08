@@ -10,27 +10,30 @@ const EditProfile = () => {
     last_name: "",
     full_name: "",
     email: "",
-    profile_image: null,
+    picture: null,
     password: "",
   });
   const [preview, setPreview] = useState(null);
   const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const data = await getProfile();
+        const response = await getProfile();
+        const data = response.data;
         setFormData({
           first_name: data.first_name || "",
           last_name: data.last_name || "",
           full_name: data.full_name || "",
           email: data.email || "",
-          profile_image: null,
+          picture: null,
           password: "",
         });
         if (data.picture) setPreview(data.picture);
       } catch (err) {
-        console.error("Failed to load profile:", err);
+        console.error("Failed to load profile:", err.response?.data || err.message);
+        setError("Failed to load profile");
       }
     };
     fetchProfile();
@@ -38,8 +41,8 @@ const EditProfile = () => {
 
   const handleChange = (e) => {
     const { name, value, files } = e.target;
-    if (name === "profile_image" && files.length > 0) {
-      setFormData({ ...formData, profile_image: files[0] });
+    if (name === "picture" && files.length > 0) {
+      setFormData({ ...formData, picture: files[0] });
       setPreview(URL.createObjectURL(files[0]));
     } else {
       setFormData({ ...formData, [name]: value });
@@ -48,24 +51,25 @@ const EditProfile = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError(null);
     const data = new FormData();
     Object.entries(formData).forEach(([key, value]) => {
-      if (value !== null) data.append(key, value);
+      if (value !== null && value !== "") data.append(key, value);
     });
 
     try {
-      const updated = await updateProfile(data);
+      const response = await updateProfile(data);
       alert("Profile updated successfully");
-
-      // Sync with AuthContext
       updateUser({
-        avatar: updated.picture || preview,
-        username: updated.username || user.username,
+        avatar: response.data.picture || preview,
+        first_name: response.data.first_name,
+        last_name: response.data.last_name,
+        full_name: response.data.full_name,
       });
-
-      if (updated.picture) setPreview(updated.picture);
+      if (response.data.picture) setPreview(response.data.picture);
     } catch (err) {
-      console.error("Profile update failed:", err);
+      console.error("Profile update failed:", err.response?.data || err.message);
+      setError("Failed to update profile");
       alert("Failed to update profile");
     }
   };
@@ -73,6 +77,7 @@ const EditProfile = () => {
   return (
     <div className="max-w-2xl mx-auto p-6 bg-white shadow rounded">
       <h2 className="text-xl font-bold mb-4">Edit Profile</h2>
+      {error && <p className="text-red-500 mb-4">{error}</p>}
       <form onSubmit={handleSubmit} className="space-y-4">
         <input
           type="text"
@@ -107,7 +112,6 @@ const EditProfile = () => {
           className="w-full border p-2 rounded"
           disabled
         />
-
         <div>
           <label className="block mb-2">Profile Image</label>
           {preview && (
@@ -117,9 +121,8 @@ const EditProfile = () => {
               className="w-20 h-20 rounded-full mb-2 object-cover"
             />
           )}
-          <input type="file" name="profile_image" onChange={handleChange} />
+          <input type="file" name="picture" onChange={handleChange} />
         </div>
-
         <div className="relative">
           <input
             type={showPassword ? "text" : "password"}
@@ -137,7 +140,6 @@ const EditProfile = () => {
             {showPassword ? <FaEyeSlash /> : <FaEye />}
           </button>
         </div>
-
         <button
           type="submit"
           className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
