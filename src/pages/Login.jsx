@@ -1,6 +1,6 @@
-// src/pages/Login.jsx (Modified)
+// src/pages/Login.jsx
 import React, { useState } from "react";
-import { useNavigate, Link } from "react-router-dom"; // Added Link import
+import { useNavigate, Link } from "react-router-dom";
 import { login as apiLogin, getCsrfToken } from "../services/api";
 import logoLight from "../assets/Aoi2-light.png";
 import { useAuth } from "../context/AuthContext";
@@ -18,35 +18,32 @@ export default function Login() {
     setError(null);
     setLoading(true);
 
+    const trimmedIdentifier = identifier.trim();
+    const trimmedPassword = password.trim();
+
     try {
-      console.log("Sending login payload:", { identifier, password });
+      console.log("Attempting login with:", { identifier: trimmedIdentifier, password: trimmedPassword });
 
-      // Fetch CSRF token
       let csrfToken = await getCsrfToken();
-      if (!csrfToken) {
-        console.warn("No CSRF token fetched, proceeding without it.");
-      }
+      console.log("CSRF Token:", csrfToken || "Not fetched");
 
-      const response = await apiLogin({ identifier, password }, csrfToken);
+      const response = await apiLogin({ identifier: trimmedIdentifier, password: trimmedPassword }, csrfToken);
       const { access, refresh, role, user: userData } = response.data;
 
-      console.log("Login role:", role); // Debug log
+      console.log("Login successful:", { role, userData });
 
-      // Update AuthContext
       login(userData);
 
-      // Store in localStorage
       localStorage.setItem("access", access);
       localStorage.setItem("refresh", refresh);
       localStorage.setItem("role", role);
       localStorage.setItem("user", JSON.stringify(userData));
 
-      // Redirect based on role (fixed for "LECTURER")
       switch (role) {
         case "STUDENT":
           navigate("/student/dashboard", { replace: true });
           break;
-        case "LECTURER": // Matches backend
+        case "LECTURER":
           navigate("/instructor/dashboard", { replace: true });
           break;
         case "ADMIN":
@@ -59,10 +56,12 @@ export default function Login() {
     } catch (err) {
       console.error("Login error:", err);
       console.log("Server response:", JSON.stringify(err.response?.data, null, 2));
-      if (err.response?.status === 401) {
-        setError("Invalid credentials. Check your email/ID or password.");
+      if (err.response?.status === 400) {
+        setError("Invalid identifier or password. Please check your credentials.");
+      } else if (err.response?.status === 401) {
+        setError("Unauthorized. Please check your credentials or clear browser data.");
       } else if (err.response?.status === 403) {
-        setError("Permission denied. Check backend logs or CSRF token.");
+        setError("Permission denied. Ensure CSRF token is valid or contact support.");
       } else if (err.message.includes("Network Error")) {
         setError("Cannot reach backend. Is Django running on http://127.0.0.1:8000?");
       } else {
@@ -81,20 +80,19 @@ export default function Login() {
 
   return (
     <div className="flex h-screen m-3">
-      {/* Left side form */}
       <div className="w-1/2 flex flex-col justify-center px-16 bg-gray-50 dark:bg-gray-800">
         <h2 className="text-3xl font-bold mb-6 text-gray-800 dark:text-gray-200">Welcome Back</h2>
         {error && <p className="text-red-500 dark:text-red-400 text-sm mb-3">{error}</p>}
-        <div className="space-y-5">
+        <form onSubmit={handleSubmit} className="space-y-5">
           <div>
             <label className="block text-sm mb-1 text-gray-700 dark:text-gray-300">
-              Email / Username / Student ID / Lecturer ID
+              Email, Username, Student ID, or Lecturer ID
             </label>
             <input
               type="text"
               value={identifier}
               onChange={(e) => setIdentifier(e.target.value)}
-              placeholder="Enter email or ID"
+              placeholder="Enter identifier"
               className="mb-3 w-full p-3 border rounded-lg focus:ring focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
               required
             />
@@ -114,17 +112,14 @@ export default function Login() {
             <Link to="/forgotpassword" className="text-blue-500 hover:underline">Forgot Password?</Link>
           </p>
           <button
-            type="button"
-            onClick={handleSubmit}
+            type="submit"
             disabled={loading}
             className="w-full py-3 mt-3 bg-green-800 text-white rounded-lg hover:bg-green-600 transition dark:bg-green-900 dark:hover:bg-green-800"
           >
             {loading ? "Logging in..." : "Login"}
           </button>
-        </div>
+        </form>
       </div>
-
-      {/* Right side image */}
       <div className="w-1/2 bg-blue-900 flex items-center justify-center bg-image">
         <div className="text-center text-white px-6">
           <img

@@ -1,3 +1,4 @@
+// src/services/api.js
 import axios from "axios";
 import { getAccessToken, getRefreshToken, saveTokens, logout } from "./auth";
 
@@ -19,16 +20,22 @@ const PUBLIC_ENDPOINTS = [
   "public-announcements",
 ];
 
-API.interceptors.request.use((config) => {
-  const token = getAccessToken();
-  if (token) {
-    config.headers["Authorization"] = `Bearer ${token}`;
-  }
-  if (config.url && !config.url.startsWith("http") && !config.url.endsWith("/")) {
-    config.url += "/";
-  }
-  return config;
-});
+API.interceptors.request.use(
+  (config) => {
+    const token = getAccessToken();
+    const isPublic = PUBLIC_ENDPOINTS.some((endpoint) =>
+      config.url?.includes(endpoint)
+    );
+    if (token && !isPublic) {
+      config.headers["Authorization"] = `Bearer ${token}`;
+    }
+    if (config.url && !config.url.startsWith("http") && !config.url.endsWith("/")) {
+      config.url += "/";
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
 
 API.interceptors.response.use(
   (response) => response,
@@ -86,8 +93,10 @@ export const getCsrfToken = async () => {
 
 export const login = async ({ identifier, password }, csrfToken) => {
   try {
+    console.log("Sending login request:", { identifier, password });
     const headers = csrfToken ? { "X-CSRFToken": csrfToken } : {};
     const res = await API.post("accounts/login/", { identifier, password }, { headers });
+    console.log("Login response:", res.data);
     saveTokens({
       access: res.data.access,
       refresh: res.data.refresh,
