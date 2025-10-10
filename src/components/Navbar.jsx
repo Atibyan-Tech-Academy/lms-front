@@ -1,6 +1,6 @@
 // src/components/Navbar.jsx
 import React, { useState, useEffect } from "react";
-import logo from "../assets/aoi-portal.png";
+import logo from "../assets/Aoi-light.png";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { getProfile } from "../services/api";

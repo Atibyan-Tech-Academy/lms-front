@@ -47,6 +47,28 @@ export default function InstructorLayout({ children }) {
             </NavLink>
           ))}
         </div>
+ {/* Main Content */}
+        <div className="flex-1 flex flex-col">
+          {/* Green Gradient Header */}
+          <div
+            style={{
+              background: "linear-gradient(to right, #04CE65, #026833)",
+              width: "100%",
+              textAlign: "center",
+              padding: "20px",
+              color: "white",
+            }}
+          >
+            <h1 className="text-2xl font-bold">Instructor Dashboard</h1>
+          </div>
+
+          {/* Page Content Area */}
+          <div className="p-6 bg-gray-50 dark:bg-gray-800 flex-1">
+            <Outlet />
+          </div>
+        </div>
+      </div>
+        
 
         {/* ✅ Page Content */}
         <div className="mt-6">

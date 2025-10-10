@@ -93,7 +93,7 @@ export default function App() {
           element={
             <PrivateRoute roleCheck={["LECTURER"]}>
               <DashboardLayout>
-                <InstructorDashboard />
+                <InstructorDashboard tab="profile" />
               </DashboardLayout>
             </PrivateRoute>
           }
