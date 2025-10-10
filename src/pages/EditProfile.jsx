@@ -75,78 +75,118 @@ const EditProfile = () => {
   };
 
   return (
-    <div className="max-w-2xl mx-auto p-6 bg-white shadow rounded">
-      <h2 className="text-xl font-bold mb-4">Edit Profile</h2>
-      {error && <p className="text-red-500 mb-4">{error}</p>}
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <input
-          type="text"
-          name="first_name"
-          placeholder="First Name"
-          value={formData.first_name}
-          onChange={handleChange}
-          className="w-full border p-2 rounded"
-        />
-        <input
-          type="text"
-          name="last_name"
-          placeholder="Last Name"
-          value={formData.last_name}
-          onChange={handleChange}
-          className="w-full border p-2 rounded"
-        />
-        <input
-          type="text"
-          name="full_name"
-          placeholder="Full Name"
-          value={formData.full_name}
-          onChange={handleChange}
-          className="w-full border p-2 rounded"
-        />
-        <input
-          type="email"
-          name="email"
-          placeholder="Email"
-          value={formData.email}
-          onChange={handleChange}
-          className="w-full border p-2 rounded"
-          disabled
-        />
-        <div>
-          <label className="block mb-2">Profile Image</label>
-          {preview && (
-            <img
-              src={preview}
-              alt="Preview"
-              className="w-20 h-20 rounded-full mb-2 object-cover"
+    <div className="min-h-screen flex items-center justify-center bg-gray-100">
+      <div className="max-w-lg w-full mx-auto p-8 bg-white shadow-lg rounded-xl border border-green-200">
+        <h2 className="text-2xl font-semibold text-green-700 mb-6 text-center">
+          Edit Your Profile
+        </h2>
+        {error && (
+          <p className="text-red-500 bg-red-50 p-3 rounded-md mb-6 text-center">
+            {error}
+          </p>
+        )}
+        <form onSubmit={handleSubmit} className="space-y-5">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              First Name
+            </label>
+            <input
+              type="text"
+              name="first_name"
+              placeholder="Enter your first name"
+              value={formData.first_name}
+              onChange={handleChange}
+              className="w-full border border-green-300 p-3 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition duration-200"
             />
-          )}
-          <input type="file" name="picture" onChange={handleChange} />
-        </div>
-        <div className="relative">
-          <input
-            type={showPassword ? "text" : "password"}
-            name="password"
-            placeholder="New Password (optional)"
-            value={formData.password}
-            onChange={handleChange}
-            className="w-full border p-2 rounded pr-10"
-          />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Last Name
+            </label>
+            <input
+              type="text"
+              name="last_name"
+              placeholder="Enter your last name"
+              value={formData.last_name}
+              onChange={handleChange}
+              className="w-full border border-green-300 p-3 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition duration-200"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Full Name
+            </label>
+            <input
+              type="text"
+              name="full_name"
+              placeholder="Enter your full name"
+              value={formData.full_name}
+              onChange={handleChange}
+              className="w-full border border-green-300 p-3 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition duration-200"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Email
+            </label>
+            <input
+              type="email"
+              name="email"
+              placeholder="Enter your email"
+              value={formData.email}
+              onChange={handleChange}
+              className="w-full border border-green-300 p-3 rounded-lg bg-gray-100 cursor-not-allowed"
+              disabled
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Profile Image
+            </label>
+            {preview && (
+              <div className="flex justify-center mb-4">
+                <img
+                  src={preview}
+                  alt="Profile Preview"
+                  className="w-24 h-24 rounded-full object-cover border-2 border-green-400 shadow-sm"
+                />
+              </div>
+            )}
+            <input
+              type="file"
+              name="picture"
+              onChange={handleChange}
+              className="w-full text-gray-600 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-green-100 file:text-green-700 hover:file:bg-green-200 transition duration-200"
+            />
+          </div>
+          <div className="relative">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              New Password (Optional)
+            </label>
+            <input
+              type={showPassword ? "text" : "password"}
+              name="password"
+              placeholder="Enter new password"
+              value={formData.password}
+              onChange={handleChange}
+              className="w-full border border-green-300 p-3 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition duration-200 pr-12"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-10 text-green-600 hover:text-green-800 transition duration-200"
+            >
+              {showPassword ? <FaEyeSlash size={20} /> : <FaEye size={20} />}
+            </button>
+          </div>
           <button
-            type="button"
-            onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-2 top-2 text-gray-600"
+            type="submit"
+            className="w-full bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition duration-200"
           >
-            {showPassword ? <FaEyeSlash /> : <FaEye />}
+            Save Changes
           </button>
-        </div>
-        <button
-          type="submit"
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-        >
-          Save Changes
-        </button>
-      </form>
+        </form>
+      </div>
     </div>
   );
 };
