@@ -1,34 +1,98 @@
-// LMS-FRONT/src/components/ChatBox.jsx
-import { useState } from 'react';
-import { useWebSocket } from '../hooks/useWebSocket';
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 
-const ChatBox = ({ roomId }) => {
+const ChatBox = ({ receiverId }) => {
   const [messages, setMessages] = useState([]);
-  const { sendMessage } = useWebSocket(roomId, (data) => {
-    setMessages((prev) => [...prev, data]);
-  });
+  const [text, setText] = useState("");
+  const [loading, setLoading] = useState(true);
 
-  const handleSend = (e) => {
-    if (e.key === 'Enter' && e.target.value) {
-      sendMessage(e.target.value);  // Add receiver if needed, e.g., sendMessage(e.target.value, 'user2')
-      e.target.value = '';
+  const API_BASE = "http://127.0.0.1:8000/api"; // change if needed
+
+  // Fetch all messages between current user and receiver
+  const fetchMessages = async () => {
+    try {
+      const token = localStorage.getItem("access"); // JWT Token
+      const res = await axios.get(`${API_BASE}/messages/`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setMessages(res.data);
+    } catch (err) {
+      console.error("Error fetching messages:", err);
+    } finally {
+      setLoading(false);
     }
   };
 
+  useEffect(() => {
+    fetchMessages();
+  }, []);
+
+  const sendMessage = async () => {
+    if (!text.trim()) return;
+
+    const newMsg = {
+      receiver: receiverId,
+      text: text,
+    };
+
+    // instantly show in UI
+    setMessages((prev) => [...prev, { ...newMsg, sender_name: "You" }]);
+    setText("");
+
+    try {
+      const token = localStorage.getItem("access");
+      await axios.post(`${API_BASE}/messages/`, newMsg, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+    } catch (err) {
+      console.error("Error sending message:", err);
+    }
+  };
+
+  if (loading) return <p className="text-center mt-4">Loading messages...</p>;
+
   return (
-    <div>
-      <h2>Chat Room: {roomId}</h2>
-      <div style={{ height: '300px', overflowY: 'scroll', border: '1px solid black', padding: '10px' }}>
-        {messages.map((msg, index) => (
-          <p key={index}><strong>{msg.username}:</strong> {msg.message}</p>
-        ))}
+    <div className="flex flex-col h-[80vh] border rounded-lg bg-white shadow-lg">
+      <div className="flex-1 overflow-y-auto p-4">
+        {messages.length > 0 ? (
+          messages.map((msg, i) => (
+            <div
+              key={i}
+              className={`my-2 flex ${
+                msg.sender_name === "You" ? "justify-end" : "justify-start"
+              }`}
+            >
+              <div
+                className={`max-w-[70%] p-2 rounded-lg ${
+                  msg.sender_name === "You"
+                    ? "bg-blue-600 text-white"
+                    : "bg-gray-200 text-gray-900"
+                }`}
+              >
+                <p>{msg.text}</p>
+              </div>
+            </div>
+          ))
+        ) : (
+          <p className="text-center text-gray-500">No messages yet.</p>
+        )}
       </div>
-      <input
-        type="text"
-        placeholder="Type a message..."
-        onKeyPress={handleSend}
-        style={{ width: '100%', marginTop: '10px' }}
-      />
+
+      <div className="flex p-3 border-t gap-2">
+        <input
+          type="text"
+          placeholder="Type a message..."
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          className="flex-1 border rounded-lg p-2"
+        />
+        <button
+          onClick={sendMessage}
+          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+        >
+          Send
+        </button>
+      </div>
     </div>
   );
 };

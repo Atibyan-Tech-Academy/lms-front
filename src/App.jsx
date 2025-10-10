@@ -1,42 +1,33 @@
-// src/App.jsx
 import React from "react";
 import { Routes, Route } from "react-router-dom";
-
+import { useAuth } from "./context/AuthContext";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import ForgotPassword from "./pages/ForgotPassword";
 import EditProfile from "./pages/EditProfile";
 import Faq from "./components/Faq";
 import SupportPage from "./components/supportpage";
-
-// Layouts
+import PageNotFound from "./pages/PageNotFound";
 import StudentLayout from "./layouts/StudentLayout";
 import DashboardLayout from "./layouts/DashboardLayout";
 import AdminLayout from "./layouts/AdminLayout";
-
-// Pages
 import StudentDashboard from "./pages/StudentDashboard";
 import InstructorDashboard from "./pages/InstructorDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
 import MyCourses from "./pages/MyCourses";
 import CreateCourse from "./pages/CreateCourse";
-
-// Components
 import ChatWidget from "./components/messaging/ChatWidget";
+import AIChatWidget from "./components/messaging/AIChatWidget"; // Add new import
+import Messages from "./pages/Messages";
 import PrivateRoute from "./components/PrivateRoute";
-import PageNotFound from "./pages/PageNotFound";
-
-// Context
-import { useAuth } from "./context/AuthContext";
 
 export default function App() {
   const { user } = useAuth();
-  const token = localStorage.getItem("access");
 
   return (
     <>
       <Routes>
-        {/* ---------- PUBLIC ROUTES ---------- */}
+        {/* Public Routes */}
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/forgotpassword" element={<ForgotPassword />} />
@@ -44,7 +35,7 @@ export default function App() {
         <Route path="/faqs" element={<Faq />} />
         <Route path="/support" element={<SupportPage />} />
 
-        {/* ---------- STUDENT ROUTES ---------- */}
+        {/* Student Routes */}
         <Route
           path="/student/dashboard"
           element={
@@ -85,8 +76,18 @@ export default function App() {
             </PrivateRoute>
           }
         />
+        <Route
+          path="/student/messages"
+          element={
+            <PrivateRoute roleCheck={["STUDENT"]}>
+              <StudentLayout>
+                <Messages />
+              </StudentLayout>
+            </PrivateRoute>
+          }
+        />
 
-        {/* ---------- INSTRUCTOR (LECTURER) ROUTES ---------- */}
+        {/* Instructor Routes */}
         <Route
           path="/instructor/dashboard"
           element={
@@ -117,8 +118,18 @@ export default function App() {
             </PrivateRoute>
           }
         />
+        <Route
+          path="/instructor/messages"
+          element={
+            <PrivateRoute roleCheck={["LECTURER"]}>
+              <DashboardLayout>
+                <Messages />
+              </DashboardLayout>
+            </PrivateRoute>
+          }
+        />
 
-        {/* ---------- ADMIN ROUTE ---------- */}
+        {/* Admin Routes */}
         <Route
           path="/admin/dashboard"
           element={
@@ -129,14 +140,27 @@ export default function App() {
             </PrivateRoute>
           }
         />
+        <Route
+          path="/admin/messages"
+          element={
+            <PrivateRoute roleCheck={["ADMIN"]}>
+              <AdminLayout>
+                <Messages />
+              </AdminLayout>
+            </PrivateRoute>
+          }
+        />
 
-        {/* ---------- 404 PAGE ---------- */}
+        {/* 404 Page */}
         <Route path="*" element={<PageNotFound />} />
       </Routes>
 
-      {/* ---------- CHAT WIDGET ---------- */}
+      {/* Floating Chat Widgets */}
       {user && ["STUDENT", "LECTURER", "ADMIN"].includes(user.role) && (
-        <ChatWidget token={token} user={user} />
+        <>
+          <ChatWidget />
+          <AIChatWidget />
+        </>
       )}
     </>
   );

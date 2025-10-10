@@ -14,6 +14,7 @@ import Profile from "../components/student/Profile";
 import Settings from "../components/student/Settings";
 import Chat from "../components/student/Chat";
 
+
 export default function StudentDashboard({ tab }) {
   const { user, updateUser } = useAuth();
   const [courses, setCourses] = useState([]);

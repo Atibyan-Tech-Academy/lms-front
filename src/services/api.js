@@ -1,4 +1,3 @@
-// src/services/api.js
 import axios from "axios";
 import { getAccessToken, getRefreshToken, saveTokens, logout } from "./auth";
 
@@ -169,6 +168,14 @@ export const updateProfile = (data) => {
   }
   return API.put("editprofile/profile/", data, config);
 };
+
+// AI Chat Endpoints
+export const getAIChatHistory = () => API.get("ai-chat/");
+export const sendAIChatMessage = (data) => API.post("ai-chat/", data);
+
+// Optional: Human Chat Endpoints (uncomment and adjust if needed, based on your Django messaging app)
+export const getMessages = (roomId) => API.get(`messaging/${roomId}/`);
+export const sendMessage = (roomId, data) => API.post(`messaging/${roomId}/`, data);
 
 export default API;
 export { API };

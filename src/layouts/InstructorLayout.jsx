@@ -13,7 +13,7 @@ export default function InstructorLayout({ children }) {
     { name: "Create Course", path: "/instructor/create-course" },
     { name: "Profile", path: "/instructor/profile" },
     { name: "Settings", path: "/instructor/settings" },
-    { name: "Chat", path: "/instructor/chat" },
+    { name: "Chat", path: "/instructor/messages" },
   ];
 
   return (
