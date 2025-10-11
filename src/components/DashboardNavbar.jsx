@@ -19,30 +19,30 @@ const DashboardNavbar = () => {
     navigate("/login");
   };
 
-  const getMenuItems = () => {
-    switch (user.role) {
-      case "STUDENT":
-        return [
-          { name: "Courses", to: "/student/dashboard#courses" },
-          { name: "Announcements", to: "/student/dashboard#announcements" },
-          { name: "Notes", to: "/student/dashboard#notes" },
-        ];
-      case "LECTURER":
-        return [
-          { name: "My Courses", to: "/instructor/my-courses" },
-          { name: "Announcements", to: "/instructor/dashboard#announcements" },
-          { name: "Profile", to: "/editprofile" },
-        ];
-      case "ADMIN":
-        return [
-          { name: "Users", to: "/admin/dashboard#users" },
-          { name: "Courses", to: "/admin/dashboard#courses" },
-          { name: "Announcements", to: "/admin/dashboard#announcements" },
-        ];
-      default:
-        return [];
-    }
-  };
+ const getMenuItems = () => {
+  switch (user.role) {
+   case "STUDENT":
+  return [
+    { name: "Courses", to: "/student/my-courses" },
+    { name: "Announcements", to: "/student/announcements" },
+    { name: "Notes", to: "/student/notes" },
+  ];
+    case "LECTURER":
+      return [
+        { name: "My Courses", to: "/instructor/my-courses" }, // Exists
+        { name: "Announcements", to: "/instructor/dashboard" }, // Fallback to dashboard (handle in InstructorDashboard)
+        { name: "Profile", to: "/instructor/dashboard" }, // Fallback to dashboard (handle in InstructorDashboard)
+      ];
+   case "ADMIN":
+  return [
+    { name: "Users", to: "/admin/users" },
+    { name: "Courses", to: "/admin/courses" },
+    { name: "Announcements", to: "/admin/announcements" },
+  ];
+    default:
+      return [];
+  }
+};
 
   // 🔹 Fallback initials if no avatar
   const getInitials = () => {

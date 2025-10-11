@@ -1,9 +1,10 @@
+// src/layouts/StudentLayout.js
 import React from "react";
 import { Link, Outlet } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import DashboardLayout from "./DashboardLayout";
 
-export default function StudentLayout({ children }) {
+export default function StudentLayout() {
   const { user } = useAuth();
 
   return (
@@ -27,7 +28,7 @@ export default function StudentLayout({ children }) {
               </li>
               <li className="mb-2">
                 <Link
-                  to="/student/dashboard/courses"
+                  to="/student/my-courses" // Changed from /student/dashboard/courses
                   className="block p-2 rounded hover:bg-gray-700 transition-colors"
                 >
                   Courses
@@ -51,10 +52,18 @@ export default function StudentLayout({ children }) {
               </li>
               <li className="mb-2">
                 <Link
-                  to="/student/messages"
+                  to="/student/dashboard/settings"
                   className="block p-2 rounded hover:bg-gray-700 transition-colors"
                 >
-                  Messages
+                  Settings
+                </Link>
+              </li>
+              <li className="mb-2">
+                <Link
+                  to="/student/dashboard/chat"
+                  className="block p-2 rounded hover:bg-gray-700 transition-colors"
+                >
+                  Chat
                 </Link>
               </li>
             </ul>
@@ -85,5 +94,3 @@ export default function StudentLayout({ children }) {
     </DashboardLayout>
   );
 }
-
-

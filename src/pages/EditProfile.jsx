@@ -6,8 +6,6 @@ import { useAuth } from "../context/AuthContext";
 const EditProfile = () => {
   const { user, updateUser } = useAuth();
   const [formData, setFormData] = useState({
-    first_name: "",
-    last_name: "",
     full_name: "",
     email: "",
     picture: null,
@@ -16,24 +14,26 @@ const EditProfile = () => {
   const [preview, setPreview] = useState(null);
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const fetchProfile = async () => {
+      setLoading(true);
       try {
         const response = await getProfile();
         const data = response.data;
         setFormData({
-          first_name: data.first_name || "",
-          last_name: data.last_name || "",
           full_name: data.full_name || "",
           email: data.email || "",
           picture: null,
           password: "",
         });
-        if (data.picture) setPreview(data.picture);
+        setPreview(data.picture ? data.picture : "/default-avatar.png");
       } catch (err) {
         console.error("Failed to load profile:", err.response?.data || err.message);
         setError("Failed to load profile");
+      } finally {
+        setLoading(false);
       }
     };
     fetchProfile();
@@ -44,35 +44,41 @@ const EditProfile = () => {
     if (name === "picture" && files.length > 0) {
       setFormData({ ...formData, picture: files[0] });
       setPreview(URL.createObjectURL(files[0]));
-    } else {
+    } else if (name !== "email") {
       setFormData({ ...formData, [name]: value });
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
     setError(null);
     const data = new FormData();
-    Object.entries(formData).forEach(([key, value]) => {
-      if (value !== null && value !== "") data.append(key, value);
-    });
+    data.append("full_name", formData.full_name);
+    if (formData.picture) data.append("picture", formData.picture);
+    if (formData.password) data.append("password", formData.password);
 
     try {
       const response = await updateProfile(data);
       alert("Profile updated successfully");
+      // Re-fetch profile to ensure the latest data
+      const updatedProfile = await getProfile();
+      const newData = updatedProfile.data;
       updateUser({
-        avatar: response.data.picture || preview,
-        first_name: response.data.first_name,
-        last_name: response.data.last_name,
-        full_name: response.data.full_name,
+        avatar: newData.picture || "/default-avatar.png",
+        full_name: newData.full_name,
       });
-      if (response.data.picture) setPreview(response.data.picture);
+      setPreview(newData.picture || "/default-avatar.png");
     } catch (err) {
       console.error("Profile update failed:", err.response?.data || err.message);
-      setError("Failed to update profile");
+      setError("Failed to update profile: " + (err.response?.data?.detail || err.message));
       alert("Failed to update profile");
+    } finally {
+      setLoading(false);
     }
   };
+
+  if (loading) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
@@ -92,11 +98,10 @@ const EditProfile = () => {
             </label>
             <input
               type="text"
-              name="first_name"
-              placeholder="Enter your first name"
-              value={formData.first_name}
-              onChange={handleChange}
-              className="w-full border border-green-300 p-3 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition duration-200"
+              value={user?.first_name || ""}
+              className="w-full border border-green-300 p-3 rounded-lg bg-gray-100 cursor-not-allowed"
+              disabled
+              readOnly
             />
           </div>
           <div>
@@ -105,11 +110,10 @@ const EditProfile = () => {
             </label>
             <input
               type="text"
-              name="last_name"
-              placeholder="Enter your last name"
-              value={formData.last_name}
-              onChange={handleChange}
-              className="w-full border border-green-300 p-3 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition duration-200"
+              value={user?.last_name || ""}
+              className="w-full border border-green-300 p-3 rounded-lg bg-gray-100 cursor-not-allowed"
+              disabled
+              readOnly
             />
           </div>
           <div>
@@ -119,10 +123,10 @@ const EditProfile = () => {
             <input
               type="text"
               name="full_name"
-              placeholder="Enter your full name"
               value={formData.full_name}
               onChange={handleChange}
               className="w-full border border-green-300 p-3 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition duration-200"
+              required
             />
           </div>
           <div>
@@ -132,11 +136,11 @@ const EditProfile = () => {
             <input
               type="email"
               name="email"
-              placeholder="Enter your email"
               value={formData.email}
               onChange={handleChange}
               className="w-full border border-green-300 p-3 rounded-lg bg-gray-100 cursor-not-allowed"
               disabled
+              readOnly
             />
           </div>
           <div>
@@ -166,7 +170,6 @@ const EditProfile = () => {
             <input
               type={showPassword ? "text" : "password"}
               name="password"
-              placeholder="Enter new password"
               value={formData.password}
               onChange={handleChange}
               className="w-full border border-green-300 p-3 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition duration-200 pr-12"
@@ -181,9 +184,10 @@ const EditProfile = () => {
           </div>
           <button
             type="submit"
-            className="w-full bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition duration-200"
+            disabled={loading}
+            className="w-full bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition duration-200 disabled:bg-gray-400"
           >
-            Save Changes
+            {loading ? "Saving..." : "Save Changes"}
           </button>
         </form>
       </div>

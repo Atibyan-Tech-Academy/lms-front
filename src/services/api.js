@@ -1,5 +1,14 @@
 import axios from "axios";
-import { getAccessToken, getRefreshToken, saveTokens, logout } from "./auth";
+import { getAccessToken, getRefreshToken, logout, getUser } from "./auth";
+
+export const saveTokens = ({ access, refresh, user }) => {
+  if (access) localStorage.setItem("access", access);
+  if (refresh) localStorage.setItem("refresh", refresh);
+  if (user) {
+    localStorage.setItem("user", JSON.stringify(user));
+    if (user.role) localStorage.setItem("role", user.role.toUpperCase());
+  }
+};
 
 const API = axios.create({
   baseURL: import.meta.env.VITE_API_URL || "http://127.0.0.1:8000/api/",
@@ -10,20 +19,20 @@ const API = axios.create({
 });
 
 const PUBLIC_ENDPOINTS = [
-  "accounts/login",
-  "accounts/refresh",
-  "accounts/get-csrf-token",
-  "accounts/password-reset",
-  "accounts/password-reset-verify",
-  "accounts/password-reset-confirm",
-  "public-announcements",
+  "accounts/login/",
+  "accounts/refresh/",
+  "accounts/get-csrf-token/",
+  "accounts/password-reset/",
+  "accounts/password-reset-verify/",
+  "accounts/password-reset-confirm/",
+  "public-announcements/",
 ];
 
 API.interceptors.request.use(
   (config) => {
     const token = getAccessToken();
     const isPublic = PUBLIC_ENDPOINTS.some((endpoint) =>
-      config.url?.includes(endpoint)
+      config.url?.endsWith(endpoint)
     );
     if (token && !isPublic) {
       config.headers["Authorization"] = `Bearer ${token}`;
@@ -33,7 +42,10 @@ API.interceptors.request.use(
     }
     return config;
   },
-  (error) => Promise.reject(error)
+  (error) => {
+    console.error("Request interceptor error:", error);
+    return Promise.reject(error);
+  }
 );
 
 API.interceptors.response.use(
@@ -41,14 +53,14 @@ API.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
     const isPublic = PUBLIC_ENDPOINTS.some((endpoint) =>
-      originalRequest?.url?.includes(endpoint)
+      originalRequest?.url?.endsWith(endpoint)
     );
 
     if (
       error.response?.status === 401 &&
       !originalRequest._retry &&
       !isPublic &&
-      !originalRequest.url?.includes("accounts/refresh")
+      !originalRequest.url?.includes("accounts/refresh/")
     ) {
       originalRequest._retry = true;
       originalRequest._retryCount = (originalRequest._retryCount || 0) + 1;
@@ -64,17 +76,20 @@ API.interceptors.response.use(
         try {
           const res = await API.post("accounts/refresh/", { refresh: refreshToken });
           const newAccess = res.data.access;
-          saveTokens({ access: newAccess, refresh: refreshToken });
+          saveTokens({ access: newAccess, refresh: refreshToken, user: getUser() });
           originalRequest.headers["Authorization"] = `Bearer ${newAccess}`;
           return API(originalRequest);
         } catch (err) {
-          console.error("Refresh failed:", err);
+          console.error("Refresh token failed:", err);
           if (err.response?.status === 401) logout();
+          return Promise.reject(err);
         }
       } else {
         console.log("No refresh token, logging out for:", originalRequest.url);
         logout();
       }
+    } else if (error.response?.status === 403) {
+      console.error("Forbidden access:", error.response.data);
     }
     return Promise.reject(error);
   }
@@ -99,7 +114,7 @@ export const login = async ({ identifier, password }, csrfToken) => {
     saveTokens({
       access: res.data.access,
       refresh: res.data.refresh,
-      role: res.data.role,
+      user: res.data.user,
     });
     return res;
   } catch (error) {
@@ -125,7 +140,10 @@ export const getAllUsers = () => API.get("accounts/users/");
 
 export const getAllCourses = () => API.get("courses/courses/");
 export const getCourse = (id) => API.get(`courses/courses/${id}/`);
-export const createCourse = (data) => API.post("courses/courses/", data);
+export const createCourse = (data) =>
+  API.post("courses/courses/", data, {
+    headers: { "Content-Type": "application/json" },
+  });
 export const updateCourse = (id, data) => API.put(`courses/courses/${id}/`, data);
 export const deleteCourse = (id) => API.delete(`courses/courses/${id}/`);
 export const getCourseModules = (courseId) => API.get(`courses/modules/?course=${courseId}`);
@@ -160,7 +178,7 @@ export const deleteAnnouncement = (id) => API.delete(`courses/announcements/${id
 
 export const getInstructorDashboard = () => API.get("courses/instructor/dashboard/");
 
-export const getProfile = () => API.get("editprofile/profile/");
+export const getProfile = () => API.get("accounts/profile/");
 export const updateProfile = (data) => {
   const config = {};
   if (data instanceof FormData) {
@@ -173,7 +191,7 @@ export const updateProfile = (data) => {
 export const getAIChatHistory = () => API.get("ai-chat/");
 export const sendAIChatMessage = (data) => API.post("ai-chat/", data);
 
-// Optional: Human Chat Endpoints (uncomment and adjust if needed, based on your Django messaging app)
+// Optional: Human Chat Endpoints
 export const getMessages = (roomId) => API.get(`messaging/${roomId}/`);
 export const sendMessage = (roomId, data) => API.post(`messaging/${roomId}/`, data);
 

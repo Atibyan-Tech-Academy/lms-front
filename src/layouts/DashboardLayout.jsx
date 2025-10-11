@@ -1,34 +1,37 @@
-// LMS-FRONT/src/layouts/DashboardLayout.jsx
+// src/layouts/DashboardLayout.js
 import React from "react";
 import DashboardNavbar from "../components/DashboardNavbar";
-import { NavLink, Route, Routes } from "react-router-dom";
-import ChatBox from "../components/ChatBox";
+import { NavLink, Outlet } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
-export default function DashboardLayout({ children }) {
-  const user = JSON.parse(localStorage.getItem("user")) || null;
-  const role = user?.role || "STUDENT"; // default fallback
+export default function DashboardLayout() {
+  const { user, loading } = useAuth() || { role: "STUDENT", first_name: "", last_name: "", display_name: "", username: "", staff_id: "", student_id: "" };
+  const role = user?.role?.toUpperCase() || "STUDENT";
 
-  // ✅ Role-based navigation tabs
+  console.log("DashboardLayout - User:", user, "Role:", role, "Loading:", loading); // Debug
+
   const tabsByRole = {
     STUDENT: [
-      { name: "Overview", path: "/dashboard" },
-      { name: "Courses", path: "/dashboard/courses" },
-      { name: "Profile", path: "/dashboard/profile" },
-      { name: "Settings", path: "/dashboard/settings" },
-      { name: "Chat", path: "/dashboard/chat" },
+      { name: "Overview", path: "/student/dashboard" },
+      { name: "Courses", path: "/student/my-courses" }, // Changed to "Courses" for clarity, matches tab list
+      { name: "Announcements", path: "/student/dashboard/announcements" },
+      { name: "Profile", path: "/student/dashboard/profile" },
+      { name: "Settings", path: "/student/dashboard/settings" },
+      { name: "Chat", path: "/student/dashboard/chat" },
     ],
     INSTRUCTOR: [
-      { name: "Overview", path: "/instructor" },
-      { name: "Courses", path: "/instructor/courses" },
+      { name: "Overview", path: "/instructor/dashboard" },
+      { name: "My Courses", path: "/instructor/my-courses" },
+      { name: "Create Course", path: "/instructor/create-course" },
       { name: "Profile", path: "/instructor/profile" },
       { name: "Settings", path: "/instructor/settings" },
       { name: "Chat", path: "/instructor/chat" },
     ],
     ADMIN: [
-      { name: "Overview", path: "/admin" },
-      { name: "Users", path: "/admin/users" },
-      { name: "Reports", path: "/admin/reports" },
-      { name: "Settings", path: "/admin/settings" },
+      { name: "Overview", path: "/admin/dashboard" },
+      { name: "Users", path: "/admin/dashboard" },
+      { name: "Reports", path: "/admin/dashboard" },
+      { name: "Settings", path: "/admin/dashboard" },
     ],
   };
 
@@ -49,7 +52,6 @@ export default function DashboardLayout({ children }) {
               "User"}
         </h1>
 
-        {/* ✅ Tabs */}
         <div className="flex space-x-4 border-b border-gray-300 dark:border-gray-600 mb-6">
           {tabs.map((tab) => (
             <NavLink
@@ -68,12 +70,8 @@ export default function DashboardLayout({ children }) {
           ))}
         </div>
 
-        {/* ✅ Page content */}
         <div className="mt-6">
-          <Routes>
-            <Route path="/*" element={children} />
-            <Route path="chat" element={<ChatBox roomId="instructor-room" />} />
-          </Routes>
+          <Outlet />
         </div>
       </main>
     </div>

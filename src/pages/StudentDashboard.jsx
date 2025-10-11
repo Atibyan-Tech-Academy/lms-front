@@ -1,3 +1,4 @@
+// src/pages/StudentDashboard.js
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
@@ -6,14 +7,12 @@ import {
   getAnnouncements,
   getProgress,
 } from "../services/api";
-import { isAuthenticated, getRole } from "../services/auth";
 import { useAuth } from "../context/AuthContext";
 import Overview from "../components/student/Overview";
 import Courses from "../components/student/Courses";
 import Profile from "../components/student/Profile";
 import Settings from "../components/student/Settings";
 import Chat from "../components/student/Chat";
-
 
 export default function StudentDashboard({ tab }) {
   const { user, updateUser } = useAuth();
@@ -25,15 +24,11 @@ export default function StudentDashboard({ tab }) {
 
   const navigate = useNavigate();
   const location = useLocation();
-  const activeTab = tab || location.hash.slice(1) || "overview";
+  const activeTab = tab || location.pathname.split("/").pop() || "dashboard"; // Use pathname segment instead of hash
 
   useEffect(() => {
-    if (!isAuthenticated() || getRole() !== "STUDENT") {
-      navigate("/login");
-      return;
-    }
     fetchInitialData();
-  }, [navigate]);
+  }, [activeTab]); // Fetch data when tab changes
 
   const fetchInitialData = async () => {
     try {
@@ -43,7 +38,7 @@ export default function StudentDashboard({ tab }) {
         getAnnouncements(),
         getProgress(),
       ]);
-      setCourses(enrollmentsRes.data.map(e => e.course) || []);
+      setCourses(enrollmentsRes.data.map((e) => e.course) || []);
       setProfile(profileRes.data || {});
       setAnnouncements(announcementsRes.data || []);
       setAllProgress(progressRes.data || []);
@@ -58,17 +53,18 @@ export default function StudentDashboard({ tab }) {
     }
   };
 
+  if (error) return <p className="text-red-500 mb-4">{error}</p>;
+
   return (
-    <div>
-      {error && <p className="text-red-500 mb-4">{error}</p>}
-      {activeTab === "overview" && (
+    <div className="p-6">
+      {activeTab === "dashboard" && (
         <Overview
           courses={courses}
           allProgress={allProgress}
           announcements={announcements}
         />
       )}
-      {activeTab === "courses" && (
+      {activeTab === "my-courses" && (
         <Courses
           courses={courses}
           allProgress={allProgress}

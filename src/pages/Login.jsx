@@ -1,7 +1,7 @@
 // src/pages/Login.jsx
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { login as apiLogin, getCsrfToken } from "../services/api";
+import { login as apiLogin, getCsrfToken, saveTokens } from "../services/api"; // Confirmed import
 import logoLight from "../assets/Aoi2-light.png";
 import { useAuth } from "../context/AuthContext";
 
@@ -24,22 +24,30 @@ export default function Login() {
     try {
       console.log("Attempting login with:", { identifier: trimmedIdentifier, password: trimmedPassword });
 
-      let csrfToken = await getCsrfToken();
+      const csrfToken = await getCsrfToken();
       console.log("CSRF Token:", csrfToken || "Not fetched");
 
-      const response = await apiLogin({ identifier: trimmedIdentifier, password: trimmedPassword }, csrfToken);
-      const { access, refresh, role, user: userData } = response.data;
+      const response = await apiLogin(
+        { identifier: trimmedIdentifier, password: trimmedPassword },
+        csrfToken
+      );
+      const { access, refresh, user: userData, role } = response.data;
 
       console.log("Login successful:", { role, userData });
 
+      // Ensure userData has a role and normalize it
+      userData.role = (role || userData.role || userData.profile?.role || "").toUpperCase();
       login(userData);
 
-      localStorage.setItem("access", access);
-      localStorage.setItem("refresh", refresh);
-      localStorage.setItem("role", role);
-      localStorage.setItem("user", JSON.stringify(userData));
+      // Save tokens and user data
+      saveTokens({
+        access,
+        refresh,
+        user: userData,
+      });
 
-      switch (role) {
+      // Navigate based on role
+      switch (userData.role) {
         case "STUDENT":
           navigate("/student/dashboard", { replace: true });
           break;
@@ -50,7 +58,7 @@ export default function Login() {
           navigate("/admin/dashboard", { replace: true });
           break;
         default:
-          console.warn("Unknown role, redirecting to home:", role);
+          console.warn("Unknown role, redirecting to home:", userData.role);
           navigate("/", { replace: true });
       }
     } catch (err) {

@@ -1,5 +1,5 @@
 import React from "react";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Outlet, Navigate } from "react-router-dom"; // Added Navigate
 import { useAuth } from "./context/AuthContext";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
@@ -15,11 +15,16 @@ import StudentDashboard from "./pages/StudentDashboard";
 import InstructorDashboard from "./pages/InstructorDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
 import MyCourses from "./pages/MyCourses";
-import CreateCourse from "./pages/CreateCourse";
+import Announcements from "./pages/Announcements";
+import Profile from "./pages/Profile";
+import Notes from "./pages/Notes";
+import Users from "./pages/Users";
+import Courses from "./pages/Courses";
 import ChatWidget from "./components/messaging/ChatWidget";
-import AIChatWidget from "./components/messaging/AIChatWidget"; // Add new import
+import AIChatWidget from "./components/messaging/AIChatWidget";
 import Messages from "./pages/Messages";
 import PrivateRoute from "./components/PrivateRoute";
+import ChatBox from "./components/ChatBox";
 
 export default function App() {
   const { user } = useAuth();
@@ -37,126 +42,72 @@ export default function App() {
 
         {/* Student Routes */}
         <Route
-          path="/student/dashboard"
+          path="/student"
           element={
             <PrivateRoute roleCheck={["STUDENT"]}>
               <StudentLayout>
-                <StudentDashboard />
+                <Outlet />
               </StudentLayout>
             </PrivateRoute>
           }
-        />
-        <Route
-          path="/student/dashboard/courses"
-          element={
-            <PrivateRoute roleCheck={["STUDENT"]}>
-              <StudentLayout>
-                <StudentDashboard tab="courses" />
-              </StudentLayout>
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="/student/dashboard/announcements"
-          element={
-            <PrivateRoute roleCheck={["STUDENT"]}>
-              <StudentLayout>
-                <StudentDashboard tab="announcements" />
-              </StudentLayout>
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="/student/dashboard/profile"
-          element={
-            <PrivateRoute roleCheck={["STUDENT"]}>
-              <StudentLayout>
-                <StudentDashboard tab="profile" />
-              </StudentLayout>
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="/student/messages"
-          element={
-            <PrivateRoute roleCheck={["STUDENT"]}>
-              <StudentLayout>
-                <Messages />
-              </StudentLayout>
-            </PrivateRoute>
-          }
-        />
+        >
+          <Route index element={<Navigate to="dashboard" />} /> {/* Default to dashboard */}
+          <Route path="dashboard" element={<StudentDashboard tab="dashboard" />} />
+          <Route path="my-courses" element={<MyCourses />} />
+          <Route path="dashboard/announcements" element={<Announcements />} />
+          <Route path="dashboard/notes" element={<Notes />} />
+          <Route path="dashboard/profile" element={<StudentDashboard tab="profile" />} />
+          <Route path="dashboard/settings" element={<StudentDashboard tab="settings" />} />
+          <Route path="dashboard/chat" element={<StudentDashboard tab="chat" />} />
+          <Route path="messages" element={<Messages />} />
+        </Route>
 
         {/* Instructor Routes */}
         <Route
-          path="/instructor/dashboard"
+          path="/instructor"
           element={
             <PrivateRoute roleCheck={["LECTURER"]}>
               <DashboardLayout>
-                <InstructorDashboard tab="profile" />
+                <Outlet />
               </DashboardLayout>
             </PrivateRoute>
           }
-        />
-        <Route
-          path="/instructor/my-courses"
-          element={
-            <PrivateRoute roleCheck={["LECTURER"]}>
-              <DashboardLayout>
-                <MyCourses />
-              </DashboardLayout>
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="/instructor/create-course"
-          element={
-            <PrivateRoute roleCheck={["LECTURER"]}>
-              <DashboardLayout>
-                <CreateCourse />
-              </DashboardLayout>
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="/instructor/messages"
-          element={
-            <PrivateRoute roleCheck={["LECTURER"]}>
-              <DashboardLayout>
-                <Messages />
-              </DashboardLayout>
-            </PrivateRoute>
-          }
-        />
+        >
+          <Route index element={<Navigate to="dashboard" />} /> {/* Default to dashboard */}
+          <Route path="dashboard" element={<InstructorDashboard />} />
+          <Route path="my-courses" element={<MyCourses />} />
+          <Route path="announcements" element={<Announcements />} />
+          <Route path="profile" element={<Profile />} />
+          <Route path="settings" element={<InstructorDashboard />} /> {/* Placeholder */}
+          <Route path="chat" element={<ChatBox roomId="instructor-room" />} />
+          <Route path="messages" element={<Messages />} />
+        </Route>
 
         {/* Admin Routes */}
         <Route
-          path="/admin/dashboard"
+          path="/admin"
           element={
             <PrivateRoute roleCheck={["ADMIN"]}>
               <AdminLayout>
-                <AdminDashboard />
+                <Outlet />
               </AdminLayout>
             </PrivateRoute>
           }
-        />
-        <Route
-          path="/admin/messages"
-          element={
-            <PrivateRoute roleCheck={["ADMIN"]}>
-              <AdminLayout>
-                <Messages />
-              </AdminLayout>
-            </PrivateRoute>
-          }
-        />
+        >
+          <Route index element={<Navigate to="dashboard" />} /> {/* Default to dashboard */}
+          <Route path="dashboard" element={<AdminDashboard />} />
+          <Route path="users" element={<Users />} />
+          <Route path="courses" element={<Courses />} />
+          <Route path="announcements" element={<Announcements />} />
+          <Route path="messages" element={<Messages />} />
+        </Route>
 
         {/* 404 Page */}
         <Route path="*" element={<PageNotFound />} />
       </Routes>
 
       {/* Floating Chat Widgets */}
-      {user && ["STUDENT", "LECTURER", "ADMIN"].includes(user.role) && (
+      {user && ["STUDENT", "LECTURER", "ADMIN"].includes(user.role.toUpperCase()) && (
         <>
           <ChatWidget />
           <AIChatWidget />
