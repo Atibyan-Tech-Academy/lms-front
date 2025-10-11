@@ -22,11 +22,12 @@ const DashboardNavbar = () => {
  const getMenuItems = () => {
   switch (user.role) {
    case "STUDENT":
-  return [
-    { name: "Courses", to: "/student/my-courses" },
-    { name: "Announcements", to: "/student/announcements" },
-    { name: "Notes", to: "/student/notes" },
-  ];
+      return [
+        { name: "Courses", to: "/student/my-courses" },
+        { name: "Announcements", to: "/student/dashboard/announcements" },
+        { name: "Notes", to: "/student/dashboard/notes" },
+      ];
+
     case "LECTURER":
       return [
         { name: "My Courses", to: "/instructor/my-courses" }, // Exists

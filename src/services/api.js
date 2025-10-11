@@ -187,6 +187,12 @@ export const updateProfile = (data) => {
   return API.put("editprofile/profile/", data, config);
 };
 
+// Notes Endpoints
+export const getNotes = () => API.get("notes/notes/");
+export const createNote = (data) => API.post("notes/notes/", data);
+export const updateNote = (id, data) => API.put(`notes/notes/${id}/`, data);
+export const deleteNote = (id) => API.delete(`notes/notes/${id}/`);
+
 // AI Chat Endpoints
 export const getAIChatHistory = () => API.get("ai-chat/");
 export const sendAIChatMessage = (data) => API.post("ai-chat/", data);
